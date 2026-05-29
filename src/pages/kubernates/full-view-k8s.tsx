@@ -10,6 +10,7 @@ import SidecarContainer from "./containers/sidecarcontainer"
 import StaticPod from "./pods/staticpod"
 import Singlepod from "./pods/single_pod";
 import MultiplePod from "./pods/multiple_pod";
+import ClusterIP from "./eks_clusters/cluster-ip";
 
 // const SidecarContainer: React.FC = () => {
 //   return <div />;
@@ -282,6 +283,31 @@ function StaticPodIcon() {
         stroke="white"
         strokeWidth="1.5"
         strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function EksClusterIcon() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="3" fill="white" opacity="0.9" />
+      <circle cx="4" cy="6" r="2" fill="white" opacity="0.7" />
+      <circle cx="20" cy="6" r="2" fill="white" opacity="0.7" />
+      <circle cx="4" cy="18" r="2" fill="white" opacity="0.7" />
+      <circle cx="20" cy="18" r="2" fill="white" opacity="0.7" />
+      <path
+        d="M12 9L6 7M12 9L18 7M12 15L6 17M12 15L18 17"
+        stroke="white"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+      />
+      <path
+        d="M4 8v8M20 8v8"
+        stroke="white"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        strokeDasharray="2 2"
       />
     </svg>
   );
@@ -840,6 +866,24 @@ export default function FullViewK8s() {
       </>,
     );
   }
+  // ── VIEW: EKS Cluster ─────────────────────────────────────────────────────
+  if (activeView === "eks-cluster") {
+    return (
+      <div style={{ minHeight: "100vh", backgroundColor: bg }}>
+        <style>{GLOBAL_STYLES}</style>
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to Kubernetes Menu", () =>
+            setActiveView(null),
+          )}
+        </div>
+        <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
+          <ClusterIP />
+        </div>
+      </div>
+    );
+  }
 
   // ── VIEW: Individual container deep-dives ─────────────────────────────────
   const containerViewKeys: ContainerKey[] = [
@@ -1233,6 +1277,134 @@ export default function FullViewK8s() {
           style={{
             background: isDark ? "rgba(34,197,94,0.15)" : "rgba(34,197,94,0.1)",
             color: "#16a34a",
+          }}
+        >
+          →
+        </div>
+      </div>
+      {/* ── EKS CLUSTER CARD ── */}
+      <div
+        className="k8s-card"
+        onClick={() => setActiveView("eks-cluster")}
+        style={{
+          backgroundColor: isDark ? "rgba(15,23,42,0.9)" : "#ffffff",
+          border: `1px solid ${isDark ? "rgba(249,115,22,0.35)" : "rgba(249,115,22,0.28)"}`,
+          boxShadow: isDark
+            ? "0 4px 24px rgba(0,0,0,0.4)"
+            : "0 4px 24px rgba(249,115,22,0.1)",
+        }}
+      >
+        <div
+          className="k8s-stripe"
+          style={{ background: "linear-gradient(90deg, #ea580c, #f97316)" }}
+        />
+        <div
+          className="k8s-card-glow"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(249,115,22,0.22) 0%, transparent 70%)",
+          }}
+        />
+        <svg className="k8s-card-bg-hex" viewBox="0 0 100 115" fill="none">
+          <polygon
+            points="50,5 93,28 93,87 50,110 7,87 7,28"
+            stroke="#f97316"
+            strokeWidth="4"
+            fill="none"
+          />
+          <polygon
+            points="50,18 83,35 83,80 50,97 17,80 17,35"
+            stroke="#f97316"
+            strokeWidth="2"
+            fill="none"
+          />
+        </svg>
+
+        <div className="k8s-card-inner">
+          <div
+            className="k8s-badge"
+            style={{
+              background: isDark
+                ? "rgba(249,115,22,0.13)"
+                : "rgba(249,115,22,0.08)",
+              color: "#ea580c",
+              border: "1px solid rgba(249,115,22,0.3)",
+            }}
+          >
+            <K8sLogo size={13} color="#ea580c" />
+            EKS RESOURCE
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              marginBottom: 14,
+            }}
+          >
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 14,
+                flexShrink: 0,
+                background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 4px 16px rgba(249,115,22,0.4)",
+              }}
+            >
+              <EksClusterIcon />
+            </div>
+            <div>
+              <p className="k8s-card-title" style={{ color: textTitle }}>
+                EKS Clusters
+              </p>
+              <p className="k8s-card-desc" style={{ color: "#ea580c" }}>
+                AWS · EKS Services
+              </p>
+            </div>
+          </div>
+
+          <p className="k8s-card-desc" style={{ color: textDesc }}>
+            AWS-managed Kubernetes clusters. Explore service types and how pods
+            communicate inside EKS.
+          </p>
+
+          <div
+            style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}
+          >
+            {["ClusterIP", "NodePort", "LoadBalancer"].map((tag) => (
+              <span
+                key={tag}
+                style={{
+                  fontFamily: "'Space Mono', monospace",
+                  fontSize: 9,
+                  padding: "3px 9px",
+                  borderRadius: 12,
+                  background: isDark
+                    ? "rgba(249,115,22,0.11)"
+                    : "rgba(249,115,22,0.07)",
+                  color: isDark ? "#fdba74" : "#ea580c",
+                  border: "1px solid rgba(249,115,22,0.22)",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div
+          className="k8s-card-arrow"
+          style={{
+            background: isDark
+              ? "rgba(249,115,22,0.18)"
+              : "rgba(249,115,22,0.1)",
+            color: "#ea580c",
           }}
         >
           →
