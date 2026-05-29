@@ -53,15 +53,16 @@ export default function InitContainer() {
   };
 
   const colors = {
-    key: "#7dd3fc", // Cyan/Blue
-    value: "#fb923c", // Orange/Amber
-    bgHeader: "#1e293b",
-    bgCode: "#0f172a",
-    border: "#334155",
-    text: "#e2e8f0",
+    key: isDark ? "#7dd3fc" : "#2563eb",
+    value: isDark ? "#fb923c" : "#d97706",
+    bgHeader: isDark ? "#1e293b" : "#e2e8f0",
+    bgCode: isDark ? "#0f172a" : "#f8fafc",
+    border: isDark ? "#334155" : "#cbd5e1",
+    text: isDark ? "#e2e8f0" : "#1e293b",
+    headerText: isDark ? "#94a3b8" : "#475569",
+    copyHover: isDark ? "#334155" : "#94a3b8",
   };
 
-  // Helper to format the yaml with colors
   const CodeBlock = ({
     title,
     content,
@@ -86,7 +87,7 @@ export default function InitContainer() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          color: "#94a3b8",
+          color: colors.headerText, // ← was hardcoded "#94a3b8"
           fontSize: "13px",
           fontWeight: 600,
         }}
@@ -104,7 +105,9 @@ export default function InitContainer() {
             fontSize: "12px",
             transition: "0.2s",
           }}
-          onMouseOver={(e) => (e.currentTarget.style.background = "#334155")}
+          onMouseOver={
+            (e) => (e.currentTarget.style.background = colors.copyHover) // ← was hardcoded "#334155"
+          }
           onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}
         >
           Copy

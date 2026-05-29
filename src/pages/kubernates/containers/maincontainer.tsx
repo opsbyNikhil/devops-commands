@@ -24,12 +24,12 @@ export default function MainContainer() {
 
   // ── Theme Styling ──
   const colors = {
-    key: "#7dd3fc", // Cyan/Blue for keys
-    string: "#fb923c", // Orange for strings
-    bgHeader: isDark ? "#1e293b" : "#f1f5f9",
-    bgCode: isDark ? "#0f172a" : "#1e293b",
-    border: isDark ? "#334155" : "#d1d5db",
-    text: isDark ? "#e2e8f0" : "#f8fafc",
+    key: isDark ? "#7dd3fc" : "#2563eb", 
+    string: isDark ? "#fb923c" : "#d97706", 
+    bgHeader: isDark ? "#1e293b" : "#e2e8f0",
+    bgCode: isDark ? "#0f172a" : "#f8fafc", 
+    border: isDark ? "#334155" : "#cbd5e1",
+    text: isDark ? "#e2e8f0" : "#1e293b",
   };
 
   return (

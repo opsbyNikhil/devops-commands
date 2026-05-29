@@ -32,20 +32,26 @@ export default function SidecarContainer() {
   };
 
   const colors = {
-    key: "#7dd3fc", // Cyan/Blue
-    value: "#fb923c", // Orange/Amber
-    bgHeader: "#1e293b",
-    bgCode: "#0f172a",
-    border: "#334155",
-    text: "#e2e8f0",
+    key: isDark ? "#7dd3fc" : "#2563eb",
+    value: isDark ? "#fb923c" : "#d97706",
+    bgHeader: isDark ? "#1e293b" : "#e2e8f0",
+    bgCode: isDark ? "#0f172a" : "#f8fafc",
+    border: isDark ? "#334155" : "#cbd5e1",
+    text: isDark ? "#e2e8f0" : "#1e293b",
+    copyBtn: isDark ? "#334155" : "#cbd5e1",
+    copyHover: isDark ? "#475569" : "#94a3b8",
+    headerText: isDark ? "#94a3b8" : "#475569",
   };
+
+  const titleColor = isDark ? "#f1f5f9" : "#0f172a";
+  const descColor = isDark ? "#94a3b8" : "#64748b";
 
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-      <h2 style={{ color: "#f1f5f9", marginBottom: "8px" }}>
+      <h2 style={{ color: titleColor, marginBottom: "8px" }}>
         Sidecar Container
       </h2>
-      <p style={{ color: "#94a3b8", marginBottom: "24px" }}>
+      <p style={{ color: descColor, marginBottom: "24px" }}>
         The sidecar pattern extends the functionality of your main container
         (like logging or monitoring) without modifying the main application
         code.
@@ -67,7 +73,7 @@ export default function SidecarContainer() {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            color: "#94a3b8",
+            color: colors.headerText,
             fontSize: "13px",
             fontWeight: 600,
           }}
@@ -77,7 +83,7 @@ export default function SidecarContainer() {
             onClick={() => handleCopy(sidecarYaml)}
             style={{
               background: "transparent",
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${colors.copyBtn}`,
               color: colors.text,
               borderRadius: "4px",
               padding: "2px 10px",
@@ -85,7 +91,9 @@ export default function SidecarContainer() {
               fontSize: "12px",
               transition: "0.2s",
             }}
-            onMouseOver={(e) => (e.currentTarget.style.background = "#334155")}
+            onMouseOver={(e) =>
+              (e.currentTarget.style.background = colors.copyHover)
+            }
             onMouseOut={(e) =>
               (e.currentTarget.style.background = "transparent")
             }
@@ -105,6 +113,7 @@ export default function SidecarContainer() {
             color: colors.text,
           }}
         >
+          {" "}
           <code>
             <span style={{ color: colors.key }}>apiVersion:</span>{" "}
             <span style={{ color: colors.value }}>v1</span>

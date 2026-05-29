@@ -734,11 +734,12 @@
 //   );
 // };
 
-// export default Header;
+// // export default Header;
+
+
 import React, { useState, useEffect, useRef } from "react";
 import { useTheme } from "../Themecontext";
 
-// ── Page Imports (Used for command counts) ──
 import { githubCommands } from "../pages/Git";
 import { dockerCommands } from "../pages/Docker";
 import { terraformCommands } from "../pages/Terraform";
@@ -760,6 +761,10 @@ export type TabKey =
   | "jenkins"
   | "azure-devops"
   | "github-actions";
+
+export type K8sSection =
+  | "k8s-docs"
+;
 
 export interface Tab {
   key: TabKey;
@@ -788,7 +793,14 @@ interface DropdownGroup {
   children: Tab[];
 }
 
-// ── Data Export ──
+interface K8sDoc {
+  key: K8sSection;
+  label: string;
+  emoji: string;
+  description: string;
+}
+
+// ── Tab Data ──
 export const TABS: Tab[] = [
   {
     key: "linux",
@@ -800,7 +812,8 @@ export const TABS: Tab[] = [
     accentLight: "#14532d",
     glow: "#22c55e40",
     glowLight: "#22c55e25",
-    description: "Essential Linux commands, shell scripting & system administration",
+    description:
+      "Essential Linux commands, shell scripting & system administration",
     commandCount: linuxCommands.length,
   },
   {
@@ -826,7 +839,8 @@ export const TABS: Tab[] = [
     accentLight: "#0670a0",
     glow: "#0db7ed40",
     glowLight: "#0db7ed25",
-    description: "Container lifecycle, images, networks, volumes & docker-compose",
+    description:
+      "Container lifecycle, images, networks, volumes & docker-compose",
     commandCount: dockerCommands.length,
   },
   {
@@ -839,7 +853,8 @@ export const TABS: Tab[] = [
     accentLight: "#4a208c",
     glow: "#7b42bc40",
     glowLight: "#7b42bc25",
-    description: "Infrastructure as Code — init, plan, apply, state & workspaces",
+    description:
+      "Infrastructure as Code — init, plan, apply, state & workspaces",
     commandCount: terraformCommands.length,
   },
   {
@@ -909,7 +924,18 @@ export const TABS: Tab[] = [
   },
 ];
 
-// Pipelines Group Dropdown
+// ── Kubernetes Docs Sections ──
+export const KUBERNETES_DOCS: K8sDoc[] = [
+  {
+    key: "k8s-docs",
+    emoji: "📦",
+    label: "Kubernates Info",
+    description: "Pods, Deployments, ReplicaSets, StatefulSets & DaemonSets",
+  },
+  
+];
+
+// ── Pipelines Dropdown Group ──
 export const PIPELINE_GROUP: DropdownGroup = {
   key: "pipelines",
   label: "Pipelines",
@@ -925,77 +951,89 @@ export const PIPELINE_GROUP: DropdownGroup = {
   ),
 };
 
-// Helper to filter which tabs show directly in the top header
-const DIRECT_TABS = ["docker", "terraform", "kubernetes", "ansible", "linux", "github"];
+// Direct tabs — kubernetes excluded (rendered as its own dropdown)
+const DIRECT_TABS = ["docker", "terraform", "ansible", "linux", "github"];
 
 interface HeaderProps {
   activeTab: TabKey | null;
   setActiveTab: (tab: TabKey) => void;
   onHomeClick: () => void;
+  activeK8sSection?: K8sSection | null;
+  setActiveK8sSection?: (section: K8sSection | null) => void;
 }
 
-// ── Floating Island Component ──
-export default function Header({ activeTab, setActiveTab, onHomeClick }: HeaderProps) {
+export default function Header({
+  activeTab,
+  setActiveTab,
+  onHomeClick,
+  activeK8sSection,
+  setActiveK8sSection,
+}: HeaderProps) {
   const { isDark, toggleTheme } = useTheme();
-  const [time, setTime] = useState(new Date());
-  const [dropOpen, setDropOpen] = useState(false);
-  const dropRef = useRef<HTMLDivElement>(null);
-  
-  // Real-time clock
-  useEffect(() => {
-    const timer = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
 
-  // Dropdown click-outside handler
+  const [dropOpen, setDropOpen] = useState(false);
+  const [k8sDropOpen, setK8sDropOpen] = useState(false);
+
+  const dropRef = useRef<HTMLDivElement>(null);
+  const k8sDropRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdowns on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (dropRef.current && !dropRef.current.contains(e.target as Node)) {
+      if (dropRef.current && !dropRef.current.contains(e.target as Node))
         setDropOpen(false);
-      }
+      if (k8sDropRef.current && !k8sDropRef.current.contains(e.target as Node))
+        setK8sDropOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const timeStr = time.toLocaleTimeString("en-US", {
-    hour12: false,
-    hour: "2-digit",
-    minute: "2-digit"
-  });
-
-  // Dynamic Theme Colors
+  // ── Theme tokens ──
   const bg = isDark ? "rgba(9, 9, 11, 0.75)" : "rgba(255, 255, 255, 0.75)";
   const border = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.08)";
   const text = isDark ? "#a1a1aa" : "#52525b";
   const textActive = isDark ? "#fafafa" : "#09090b";
   const hoverBg = isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)";
-  const dropdownShadow = isDark 
-    ? "0 20px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08)" 
+  const dropdownShadow = isDark
+    ? "0 20px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08)"
     : "0 20px 40px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.08)";
 
   const activeTabData = TABS.find((t) => t.key === activeTab);
-  const activeGlow = activeTabData ? (isDark ? activeTabData.color : activeTabData.colorLight) : "transparent";
+  const activeGlow = activeTabData
+    ? isDark
+      ? activeTabData.color
+      : activeTabData.colorLight
+    : "transparent";
 
-  const visibleTabs = TABS.filter(t => DIRECT_TABS.includes(t.key));
+  const visibleTabs = TABS.filter((t) => DIRECT_TABS.includes(t.key));
+
+  // Pipelines
   const pipelineKeys = PIPELINE_GROUP.children.map((t) => t.key);
   const pipelineActive = activeTab && pipelineKeys.includes(activeTab);
-  const pipelineColor = isDark ? PIPELINE_GROUP.color : PIPELINE_GROUP.colorLight;
+  const pipelineColor = isDark
+    ? PIPELINE_GROUP.color
+    : PIPELINE_GROUP.colorLight;
+
+  // Kubernetes
+  const k8sTab = TABS.find((t) => t.key === "kubernetes")!;
+  const isK8sActive = activeTab === "kubernetes";
+  const k8sColor = isDark ? k8sTab.color : k8sTab.colorLight;
 
   return (
     <div style={s.navContainer}>
-      <nav 
+      <nav
         style={{
           ...s.island,
           background: bg,
           borderColor: border,
-          boxShadow: `0 8px 32px rgba(0, 0, 0, ${isDark ? "0.4" : "0.1"}), 0 0 0 1px ${border}, 0 4px 20px ${activeGlow}30`
+          boxShadow: `0 8px 32px rgba(0,0,0,${isDark ? "0.4" : "0.1"}), 0 0 0 1px ${border}, 0 4px 20px ${activeGlow}30`,
         }}
       >
-        {/* ── 1. Logo / Home ── */}
-        <button 
-          onClick={onHomeClick} 
-          style={{...s.iconBtn, color: textActive}}
+        {/* ── Logo ── */}
+        <button
+          onClick={onHomeClick}
+          style={{ ...s.iconBtn, color: textActive }}
           title="Home"
         >
           <div style={s.cmdLogo}>
@@ -1003,14 +1041,14 @@ export default function Header({ activeTab, setActiveTab, onHomeClick }: HeaderP
           </div>
         </button>
 
-        <div style={{...s.divider, background: border}} />
+        <div style={{ ...s.divider, background: border }} />
 
-        {/* ── 2. Center Tabs ── */}
+        {/* ── Tabs ── */}
         <div style={s.tabsWrapper}>
+          {/* Direct tabs */}
           {visibleTabs.map((tab) => {
             const isActive = activeTab === tab.key;
             const tabColor = isDark ? tab.color : tab.colorLight;
-
             return (
               <button
                 key={tab.key}
@@ -1024,77 +1062,281 @@ export default function Header({ activeTab, setActiveTab, onHomeClick }: HeaderP
                   if (!isActive) e.currentTarget.style.background = hoverBg;
                 }}
                 onMouseOut={(e) => {
-                  if (!isActive) e.currentTarget.style.background = "transparent";
+                  if (!isActive)
+                    e.currentTarget.style.background = "transparent";
                 }}
               >
                 <span style={{ fontSize: "14px" }}>{tab.emoji}</span>
-                <span style={{ fontWeight: isActive ? 600 : 500 }}>{tab.label}</span>
-                
-                {/* Active Indicator Underline */}
+                <span style={{ fontWeight: isActive ? 600 : 500 }}>
+                  {tab.label}
+                </span>
                 {isActive && (
-                  <div 
+                  <div
                     style={{
                       ...s.activeIndicator,
                       background: tabColor,
-                      boxShadow: `0 0 8px ${tabColor}`
-                    }} 
+                      boxShadow: `0 0 8px ${tabColor}`,
+                    }}
                   />
                 )}
               </button>
             );
           })}
 
-          {/* ── Pipelines Dropdown Trigger ── */}
-          <div 
-            ref={dropRef} 
+          {/* ── Kubernetes Docs Dropdown ── */}
+          <div
+            ref={k8sDropRef}
             style={{ position: "relative" }}
-            onMouseEnter={() => setDropOpen(true)}
-            onMouseLeave={() => setDropOpen(false)}
+            onClick={() => setK8sDropOpen((prev) => !prev)}
           >
             <button
+              onClick={() => {
+                setActiveTab("kubernetes");
+                setActiveK8sSection?.(null);
+              }}
               style={{
                 ...s.tab,
-                color: pipelineActive || dropOpen ? textActive : text,
-                background: pipelineActive ? `${pipelineColor}15` : dropOpen ? hoverBg : "transparent",
+                color: isK8sActive || k8sDropOpen ? textActive : text,
+                background: isK8sActive
+                  ? `${k8sColor}15`
+                  : k8sDropOpen
+                    ? hoverBg
+                    : "transparent",
               }}
             >
-              <span style={{ fontSize: "14px" }}>{PIPELINE_GROUP.emoji}</span>
-              <span style={{ fontWeight: pipelineActive || dropOpen ? 600 : 500 }}>{PIPELINE_GROUP.label}</span>
-              <span style={{
-                fontSize: "10px", 
-                marginLeft: "2px",
-                opacity: dropOpen ? 1 : 0.5,
-                transform: dropOpen ? "rotate(180deg)" : "rotate(0deg)",
-                transition: "all 0.2s ease"
-              }}>
+              <span style={{ fontSize: "14px" }}>{k8sTab.emoji}</span>
+              <span
+                style={{ fontWeight: isK8sActive || k8sDropOpen ? 600 : 500 }}
+              >
+                Kubernetes
+              </span>
+              <span
+                style={{
+                  fontSize: "10px",
+                  marginLeft: "2px",
+                  opacity: k8sDropOpen ? 1 : 0.5,
+                  display: "inline-block",
+                  transform: k8sDropOpen ? "rotate(180deg)" : "rotate(0deg)",
+                  transition: "all 0.2s ease",
+                }}
+              >
                 ▼
               </span>
-
-              {pipelineActive && (
-                <div style={{
-                  ...s.activeIndicator,
-                  background: pipelineColor,
-                  boxShadow: `0 0 8px ${pipelineColor}`
-                }} />
+              {isK8sActive && (
+                <div
+                  style={{
+                    ...s.activeIndicator,
+                    background: k8sColor,
+                    boxShadow: `0 0 8px ${k8sColor}`,
+                  }}
+                />
               )}
             </button>
 
-            {/* Dropdown Panel */}
-            <div style={{
-              ...s.dropdown,
-              background: bg,
-              boxShadow: dropdownShadow,
-              opacity: dropOpen ? 1 : 0,
-              transform: dropOpen ? "translateY(0) scale(1)" : "translateY(-10px) scale(0.98)",
-              pointerEvents: dropOpen ? "auto" : "none",
-            }}>
-              <div style={{...s.dropHeader, borderBottom: `1px solid ${border}`}}>
+            {/* K8s Dropdown Panel */}
+            <div
+              style={{
+                ...s.dropdown,
+                background: bg,
+                boxShadow: dropdownShadow,
+                opacity: k8sDropOpen ? 1 : 0,
+                transform: k8sDropOpen
+                  ? "translateY(0) scale(1)"
+                  : "translateY(-10px) scale(0.98)",
+                pointerEvents: k8sDropOpen ? "auto" : "none",
+                minWidth: "290px",
+              }}
+            >
+              {/* Section items */}
+              {KUBERNETES_DOCS.map((doc) => {
+                const isDocActive = isK8sActive && activeK8sSection === doc.key;
+                return (
+                  <button
+                    key={doc.key}
+                    onClick={() => {
+                      setActiveTab("kubernetes");
+                      setActiveK8sSection?.(doc.key);
+                      setK8sDropOpen(false);
+                    }}
+                    style={{
+                      ...s.dropItem,
+                      background: isDocActive ? `${k8sColor}15` : "transparent",
+                    }}
+                    onMouseOver={(e) => {
+                      if (!isDocActive)
+                        e.currentTarget.style.background = hoverBg;
+                    }}
+                    onMouseOut={(e) => {
+                      if (!isDocActive)
+                        e.currentTarget.style.background = "transparent";
+                    }}
+                  >
+                    <div
+                      style={{
+                        ...s.dropIconBox,
+                        background: `${k8sColor}20`,
+                        border: `1px solid ${k8sColor}40`,
+                        boxShadow: isDocActive
+                          ? `0 0 10px ${k8sTab.glow}`
+                          : "none",
+                        fontSize: "17px",
+                      }}
+                    >
+                      {doc.emoji}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "flex-start",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: "13px",
+                          fontWeight: isDocActive ? 700 : 600,
+                          color: isDocActive ? k8sColor : textActive,
+                        }}
+                      >
+                        {doc.label}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "11px",
+                          color: text,
+                          textAlign: "left",
+                          marginTop: "2px",
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        {doc.description}
+                      </span>
+                    </div>
+                    {isDocActive && (
+                      <div
+                        style={{
+                          marginLeft: "auto",
+                          width: "6px",
+                          height: "6px",
+                          borderRadius: "50%",
+                          background: k8sColor,
+                          boxShadow: `0 0 6px ${k8sColor}`,
+                          flexShrink: 0,
+                        }}
+                      />
+                    )}
+                  </button>
+                );
+              })}
+
+              {/* Footer — view all */}
+              {/* <div
+                style={{
+                  borderTop: `1px solid ${border}`,
+                  marginTop: "4px",
+                  padding: "6px 6px 2px",
+                }}
+              >
+                <button
+                  onClick={() => {
+                    setActiveTab("kubernetes");
+                    setActiveK8sSection?.(null);
+                    setK8sDropOpen(false);
+                  }}
+                  style={{
+                    ...s.dropItem,
+                    padding: "7px 10px",
+                    justifyContent: "center",
+                    fontSize: "12px",
+                    color: k8sColor,
+                    fontWeight: 600,
+                    background: `${k8sColor}08`,
+                    borderRadius: "10px",
+                    width: "100%",
+                    gap: "6px",
+                  }}
+                  onMouseOver={(e) =>
+                    (e.currentTarget.style.background = `${k8sColor}18`)
+                  }
+                  onMouseOut={(e) =>
+                    (e.currentTarget.style.background = `${k8sColor}08`)
+                  }
+                >
+                  ☸️ View all {k8sTab.commandCount} commands
+                </button>
+              </div> */}
+            </div>
+          </div>
+
+          {/* ── Pipelines Dropdown ── */}
+          <div
+            ref={dropRef}
+            style={{ position: "relative" }}
+           
+          >
+            <button
+              onClick={() => setDropOpen((prev) => !prev)} 
+              style={{
+                ...s.tab,
+                color: pipelineActive || dropOpen ? textActive : text,
+                background: pipelineActive
+                  ? `${pipelineColor}15`
+                  : dropOpen
+                    ? hoverBg
+                    : "transparent",
+              }}
+            >
+              <span style={{ fontSize: "14px" }}>{PIPELINE_GROUP.emoji}</span>
+              <span
+                style={{ fontWeight: pipelineActive || dropOpen ? 600 : 500 }}
+              >
+                {PIPELINE_GROUP.label}
+              </span>
+              <span
+                style={{
+                  fontSize: "10px",
+                  marginLeft: "2px",
+                  opacity: dropOpen ? 1 : 0.5,
+                  display: "inline-block",
+                  transform: dropOpen ? "rotate(180deg)" : "rotate(0deg)",
+                  transition: "all 0.2s ease",
+                }}
+              >
+                ▼
+              </span>
+              {pipelineActive && (
+                <div
+                  style={{
+                    ...s.activeIndicator,
+                    background: pipelineColor,
+                    boxShadow: `0 0 8px ${pipelineColor}`,
+                  }}
+                />
+              )}
+            </button>
+
+            {/* Pipelines Dropdown Panel */}
+            <div
+              style={{
+                ...s.dropdown,
+                background: bg,
+                boxShadow: dropdownShadow,
+                opacity: dropOpen ? 1 : 0,
+                transform: dropOpen
+                  ? "translateY(0) scale(1)"
+                  : "translateY(-10px) scale(0.98)",
+                pointerEvents: dropOpen ? "auto" : "none",
+                minWidth: "260px",
+              }}
+            >
+              <div
+                style={{ ...s.dropHeader, borderBottom: `1px solid ${border}` }}
+              >
                 CI / CD Pipelines
               </div>
               {PIPELINE_GROUP.children.map((item) => {
                 const isItemActive = activeTab === item.key;
                 const itemColor = isDark ? item.color : item.colorLight;
-
                 return (
                   <button
                     key={item.key}
@@ -1104,32 +1346,56 @@ export default function Header({ activeTab, setActiveTab, onHomeClick }: HeaderP
                     }}
                     style={{
                       ...s.dropItem,
-                      background: isItemActive ? `${itemColor}15` : "transparent",
+                      background: isItemActive
+                        ? `${itemColor}15`
+                        : "transparent",
                     }}
                     onMouseOver={(e) => {
-                      if (!isItemActive) e.currentTarget.style.background = hoverBg;
+                      if (!isItemActive)
+                        e.currentTarget.style.background = hoverBg;
                     }}
                     onMouseOut={(e) => {
-                      if (!isItemActive) e.currentTarget.style.background = "transparent";
+                      if (!isItemActive)
+                        e.currentTarget.style.background = "transparent";
                     }}
                   >
-                    <div style={{
-                      ...s.dropIconBox,
-                      background: `${itemColor}20`,
-                      border: `1px solid ${itemColor}40`,
-                      boxShadow: isItemActive ? `0 0 10px ${item.glow}` : "none"
-                    }}>
+                    <div
+                      style={{
+                        ...s.dropIconBox,
+                        background: `${itemColor}20`,
+                        border: `1px solid ${itemColor}40`,
+                        boxShadow: isItemActive
+                          ? `0 0 10px ${item.glow}`
+                          : "none",
+                        fontSize: "16px",
+                      }}
+                    >
                       {item.emoji}
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-                      <span style={{ 
-                        fontSize: "13px", 
-                        fontWeight: isItemActive ? 700 : 600, 
-                        color: isItemActive ? itemColor : textActive 
-                      }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "flex-start",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: "13px",
+                          fontWeight: isItemActive ? 700 : 600,
+                          color: isItemActive ? itemColor : textActive,
+                        }}
+                      >
                         {item.label}
                       </span>
-                      <span style={{ fontSize: "11px", color: text, textAlign: "left", marginTop: "2px" }}>
+                      <span
+                        style={{
+                          fontSize: "11px",
+                          color: text,
+                          textAlign: "left",
+                          marginTop: "2px",
+                        }}
+                      >
                         {item.description}
                       </span>
                     </div>
@@ -1140,36 +1406,24 @@ export default function Header({ activeTab, setActiveTab, onHomeClick }: HeaderP
           </div>
         </div>
 
-        <div style={{...s.divider, background: border}} />
+        <div style={{ ...s.divider, background: border }} />
 
-        {/* ── 3. Right Actions (Clock & Theme) ── */}
+        {/* ── Right Actions ── */}
         <div style={s.actions}>
-          {/* <div style={{...s.clock, color: textActive, borderColor: border}}>
-            <div style={s.pulse} />
-            {timeStr}
-          </div> */}
-
-          <button 
-            onClick={toggleTheme} 
-            style={{...s.iconBtn, color: text, background: hoverBg}}
+          <button
+            onClick={toggleTheme}
+            style={{ ...s.iconBtn, color: text, background: hoverBg }}
             title="Toggle Theme"
           >
             {isDark ? "🌙" : "☀️"}
           </button>
         </div>
       </nav>
-
-      <style>{`
-        @keyframes pulseDot {
-          0% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.3; transform: scale(0.8); }
-          100% { opacity: 1; transform: scale(1); }
-        }
-      `}</style>
     </div>
   );
 }
 
+// ── Styles ──
 const s: Record<string, React.CSSProperties> = {
   navContainer: {
     position: "fixed",
@@ -1180,7 +1434,7 @@ const s: Record<string, React.CSSProperties> = {
     justifyContent: "center",
     paddingTop: "24px",
     zIndex: 9999,
-    pointerEvents: "none", 
+    pointerEvents: "none",
   },
   island: {
     display: "flex",
@@ -1192,7 +1446,7 @@ const s: Record<string, React.CSSProperties> = {
     WebkitBackdropFilter: "blur(20px) saturate(180%)",
     borderStyle: "solid",
     borderWidth: "1px",
-    pointerEvents: "auto", 
+    pointerEvents: "auto",
     fontFamily: "system-ui, -apple-system, sans-serif",
     transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
   },
@@ -1224,6 +1478,7 @@ const s: Record<string, React.CSSProperties> = {
     cursor: "pointer",
     fontSize: "13px",
     transition: "all 0.2s ease",
+    whiteSpace: "nowrap",
   },
   activeIndicator: {
     position: "absolute",
@@ -1238,7 +1493,6 @@ const s: Record<string, React.CSSProperties> = {
     position: "absolute",
     top: "calc(100% + 12px)",
     right: 0,
-    minWidth: "260px",
     borderRadius: "16px",
     padding: "6px",
     display: "flex",
@@ -1276,7 +1530,6 @@ const s: Record<string, React.CSSProperties> = {
     width: "34px",
     height: "34px",
     borderRadius: "8px",
-    fontSize: "16px",
     flexShrink: 0,
   },
   actions: {
@@ -1284,26 +1537,6 @@ const s: Record<string, React.CSSProperties> = {
     alignItems: "center",
     gap: "8px",
     paddingLeft: "4px",
-  },
-  clock: {
-    display: "flex",
-    alignItems: "center",
-    gap: "6px",
-    padding: "4px 10px",
-    borderRadius: "12px",
-    fontSize: "12px",
-    fontWeight: 600,
-    fontFamily: "'JetBrains Mono', monospace",
-    borderWidth: "1px",
-    borderStyle: "solid",
-  },
-  pulse: {
-    width: "6px",
-    height: "6px",
-    borderRadius: "50%",
-    background: "#22c55e",
-    boxShadow: "0 0 8px #22c55e",
-    animation: "pulseDot 2s ease-in-out infinite",
   },
   iconBtn: {
     display: "flex",
@@ -1317,5 +1550,5 @@ const s: Record<string, React.CSSProperties> = {
     cursor: "pointer",
     fontSize: "14px",
     transition: "all 0.2s ease",
-  }
+  },
 };
