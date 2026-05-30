@@ -5,7 +5,7 @@ import Footer from "./components/Footer";
 import Body from "./components/Body";
 import HomePage from "./components/Homepage";
 import DevOpsLoader from "./DevOpsLoader";
-import FullViewK8s from "./pages/kubernates/full-view-k8s"; // ← add this
+import FullViewK8s from "./pages/kubernates/full-view-k8s"; 
 
 const AppContent: React.FC = () => {
   const { isDark } = useTheme();
