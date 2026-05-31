@@ -1,0 +1,15 @@
+name: Github-Actions
+
+on:
+  push:
+    brnaches:
+      - main
+
+jobs:
+  build:
+    name: devops-commands-app
+    runs-on:  self-hosted
+
+    steps:
+      - name: checkout
+        uses: actions/checkour@v6
