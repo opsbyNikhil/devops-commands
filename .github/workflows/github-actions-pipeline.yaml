@@ -32,6 +32,13 @@ jobs:
         uses:  SonarSource/sonarqube-scan-action@v4
         env:
           SONAR_TOKEN:  ${{ secrets.SONAR_TOKEN }}
+
+      - name: Verify Files
+        run: |
+          pwd
+          ls -la
+          ls -la src
+          cat sonar-project.properties
       
       - name: Docker image build
         run:  docker image build -t devops-cmd-app:v1.0 .
