@@ -32,17 +32,31 @@ jobs:
         uses:  SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN:  ${{ secrets.SONAR_TOKEN }}
+            
+      - name: Configure AWS Credentails
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws_secret_key_id: ${{ secrets.AWS_SECRET_KEY_ID }}
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_region: ${{ secrets.AWS_REGION }}
 
-      - name: Verify Files
-        run: |
-          pwd
-          ls -la
-          ls -la src
-          cat sonar-project.properties
-      
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
       - name: Docker image build
         run:  docker image build -t devops-cmd-app:v1.0 .
       
       - name: Docker Images
         run:  docker image ls
+        
+      - name: Tag Docker Image
+        run:  |
+          docker tag devops-cmd-app:v1.0 ${{ secrets.AWS_ECR_REPOSITORY }} :latest
+
+      - name: Docker Image Push to Amazon ECR
+        run:  |
+          docker push ${{ secrets.AWS_ECR_REPOSITORY }} :latest
+
+
 
