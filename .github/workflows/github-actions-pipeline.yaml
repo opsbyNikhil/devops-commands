@@ -27,3 +27,9 @@ jobs:
       
       - name: Build Application
         run:  npm run build
+      
+      - name: Docker image build
+        run:  docker image build -t devops-cmd-app:v1.0 .
+      
+      - name: Docker Images
+        run:  socker iamge ls
