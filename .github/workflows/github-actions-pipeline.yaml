@@ -36,8 +36,8 @@ jobs:
       - name: Configure AWS Credentails
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-secret-access-id: ${{ secrets.AWS_SECRET_KEY_ID }}
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key-id: ${{ secrets.AWS_SECRET_KEY_ID }}
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
@@ -52,8 +52,8 @@ jobs:
         
       - name: Tag Docker Image
         run:  |
-          docker tag devops-cmd-app:v1.0 ${{ secrets.AWS_ECR_REPOSITORY }}:latest
+          docker tag devops-cmd-app:v1.0 ${{ secrets.ECR_REPOSITORY }}:latest
 
       - name: Docker Image Push to Amazon ECR
         run:  |
-          docker push ${{ secrets.AWS_ECR_REPOSITORY }}:latest
+          docker push ${{ secrets.ECR_REPOSITORY }}:latest
