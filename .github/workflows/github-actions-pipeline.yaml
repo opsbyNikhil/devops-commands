@@ -57,4 +57,3 @@ jobs:
       - name: Docker Image Push to Amazon ECR
         run:  |
           docker push ${{ secrets.AWS_ECR_REPOSITORY }} :latest
-
