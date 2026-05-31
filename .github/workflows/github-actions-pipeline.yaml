@@ -12,4 +12,4 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkour@v6
+        uses: actions/checkout@v6
