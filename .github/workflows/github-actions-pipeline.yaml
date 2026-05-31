@@ -31,7 +31,7 @@ jobs:
       - name: Sonar Cloud Scan
         uses:  SonarSource/sonarqube-scan-action@v5
         env:
-          SONAR_TOKEN:  ${{ secets.SONAR_TOKEN }}
+          SONAR_TOKEN:  ${{ secrets.SONAR_TOKEN }}
       
       - name: Docker image build
         run:  docker image build -t devops-cmd-app:v1.0 .
