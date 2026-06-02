@@ -38,6 +38,9 @@ import Pending from "./pod-lifecycle/pending";
 import Success from "./pod-lifecycle/success";
 import Unknown from "./pod-lifecycle/unknown";
 
+// resources
+
+import ResourceComponent from "./resources/resources-oom-killed";
 
 export const k8sCommandCount = 4;
 
@@ -499,6 +502,30 @@ function LifecycleUnknownIcon() {
   );
 }
 
+  function Resource() {
+    return (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+        <rect
+          x="5"
+          y="5"
+          width="14"
+          height="14"
+          rx="2"
+          stroke="white"
+          strokeWidth="1.5"
+          fill="rgba(255,255,255,0.15)"
+        />
+        <path
+          d="M8 5V3M12 5V3M16 5V3M8 21v-2M12 21v-2M16 21v-2M5 8H3M5 12H3M5 16H3M21 8h-2M21 12h-2M21 16h-2"
+          stroke="white"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  }
+
+
 // ─────────────────────────────────────────────
 // Pod type meta config
 // ─────────────────────────────────────────────
@@ -809,6 +836,29 @@ const probeMeta = {
 } as const;
 
 type ProbeKey = keyof typeof probeMeta;
+
+// ─────────────────────────────────────────────
+// Resource meta config
+// ─────────────────────────────────────────────
+
+const oomKilledSubMeta = {
+  "oom-killed": {
+    label: "OOMKilled",
+    subtitle: "v1 · core/Container · Exit 137",
+    accent: "#e11d48",
+    accentDim: "rgba(225,29,72,0.15)",
+    accentBorder: "rgba(225,29,72,0.3)",
+    accentShadow: "rgba(225,29,72,0.35)",
+    glow: "rgba(225,29,72,0.18)",
+    gradient: "linear-gradient(135deg, #e11d48 0%, #9f1239 100%)",
+    stripeGradient: "linear-gradient(90deg, #be123c, #e11d48)",
+    tags: ["Exit 137", "SIGKILL", "Memory Limit"],
+    desc: "Container terminated by the Linux OOM killer when it exceeds its memory limit. No graceful shutdown — SIGKILL is immediate.",
+    icon: <Resource />,
+  },
+} as const;
+
+// type ResourceKey = keyof typeof resourceMeta;
 
 // ─────────────────────────────────────────────
 // Global styles
@@ -1289,8 +1339,12 @@ export default function FullViewK8s() {
     return (
       <div style={{ minHeight: "100vh", backgroundColor: bg }}>
         <style>{GLOBAL_STYLES}</style>
-        <div style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}>
-          {renderBackButton("Back to EKS Services", () => setActiveView("eks-clusters"))}
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to EKS Services", () =>
+            setActiveView("eks-clusters"),
+          )}
         </div>
         <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
           <ClusterIP />
@@ -1303,8 +1357,12 @@ export default function FullViewK8s() {
     return (
       <div style={{ minHeight: "100vh", backgroundColor: bg }}>
         <style>{GLOBAL_STYLES}</style>
-        <div style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}>
-          {renderBackButton("Back to EKS Services", () => setActiveView("eks-clusters"))}
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to EKS Services", () =>
+            setActiveView("eks-clusters"),
+          )}
         </div>
         <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
           <NodePort />
@@ -1317,8 +1375,12 @@ export default function FullViewK8s() {
     return (
       <div style={{ minHeight: "100vh", backgroundColor: bg }}>
         <style>{GLOBAL_STYLES}</style>
-        <div style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}>
-          {renderBackButton("Back to EKS Services", () => setActiveView("eks-clusters"))}
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to EKS Services", () =>
+            setActiveView("eks-clusters"),
+          )}
         </div>
         <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
           <LoadBalancer />
@@ -1331,8 +1393,12 @@ export default function FullViewK8s() {
     return (
       <div style={{ minHeight: "100vh", backgroundColor: bg }}>
         <style>{GLOBAL_STYLES}</style>
-        <div style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}>
-          {renderBackButton("Back to EKS Services", () => setActiveView("eks-clusters"))}
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to EKS Services", () =>
+            setActiveView("eks-clusters"),
+          )}
         </div>
         <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
           <ExternalName />
@@ -1384,8 +1450,12 @@ export default function FullViewK8s() {
     return (
       <div style={{ minHeight: "100vh", backgroundColor: bg }}>
         <style>{GLOBAL_STYLES}</style>
-        <div style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}>
-          {renderBackButton("Back to Container Probes", () => setActiveView("probes"))}
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to Container Probes", () =>
+            setActiveView("probes"),
+          )}
         </div>
         <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
           <StartupProbe />
@@ -1398,8 +1468,12 @@ export default function FullViewK8s() {
     return (
       <div style={{ minHeight: "100vh", backgroundColor: bg }}>
         <style>{GLOBAL_STYLES}</style>
-        <div style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}>
-          {renderBackButton("Back to Container Probes", () => setActiveView("probes"))}
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to Container Probes", () =>
+            setActiveView("probes"),
+          )}
         </div>
         <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
           <LivenessProbe />
@@ -1412,8 +1486,12 @@ export default function FullViewK8s() {
     return (
       <div style={{ minHeight: "100vh", backgroundColor: bg }}>
         <style>{GLOBAL_STYLES}</style>
-        <div style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}>
-          {renderBackButton("Back to Container Probes", () => setActiveView("probes"))}
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to Container Probes", () =>
+            setActiveView("probes"),
+          )}
         </div>
         <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
           <ReadinessProbe />
@@ -1465,8 +1543,12 @@ export default function FullViewK8s() {
     return (
       <div style={{ minHeight: "100vh", backgroundColor: bg }}>
         <style>{GLOBAL_STYLES}</style>
-        <div style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}>
-          {renderBackButton("Back to Pod Lifecycle", () => setActiveView("pod-lifecycle"))}
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to Pod Lifecycle", () =>
+            setActiveView("pod-lifecycle"),
+          )}
         </div>
         <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
           <Running />
@@ -1479,8 +1561,12 @@ export default function FullViewK8s() {
     return (
       <div style={{ minHeight: "100vh", backgroundColor: bg }}>
         <style>{GLOBAL_STYLES}</style>
-        <div style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}>
-          {renderBackButton("Back to Pod Lifecycle", () => setActiveView("pod-lifecycle"))}
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to Pod Lifecycle", () =>
+            setActiveView("pod-lifecycle"),
+          )}
         </div>
         <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
           <Pending />
@@ -1493,8 +1579,12 @@ export default function FullViewK8s() {
     return (
       <div style={{ minHeight: "100vh", backgroundColor: bg }}>
         <style>{GLOBAL_STYLES}</style>
-        <div style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}>
-          {renderBackButton("Back to Pod Lifecycle", () => setActiveView("pod-lifecycle"))}
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to Pod Lifecycle", () =>
+            setActiveView("pod-lifecycle"),
+          )}
         </div>
         <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
           <Success />
@@ -1507,8 +1597,12 @@ export default function FullViewK8s() {
     return (
       <div style={{ minHeight: "100vh", backgroundColor: bg }}>
         <style>{GLOBAL_STYLES}</style>
-        <div style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}>
-          {renderBackButton("Back to Pod Lifecycle", () => setActiveView("pod-lifecycle"))}
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to Pod Lifecycle", () =>
+            setActiveView("pod-lifecycle"),
+          )}
         </div>
         <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
           <Failed />
@@ -1521,8 +1615,12 @@ export default function FullViewK8s() {
     return (
       <div style={{ minHeight: "100vh", backgroundColor: bg }}>
         <style>{GLOBAL_STYLES}</style>
-        <div style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}>
-          {renderBackButton("Back to Pod Lifecycle", () => setActiveView("pod-lifecycle"))}
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to Pod Lifecycle", () =>
+            setActiveView("pod-lifecycle"),
+          )}
         </div>
         <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
           <Unknown />
@@ -1530,6 +1628,62 @@ export default function FullViewK8s() {
       </div>
     );
   }
+
+  // ── VIEW: Resources ────────────────────────────────────────────────────────
+if (activeView === "resources") {
+  return pageWrap(
+    <>
+      {renderBackButton("Back to Kubernetes Menu", () => setActiveView(null))}
+      <p
+        style={{
+          fontFamily: "'Rajdhani', sans-serif",
+          fontWeight: 700,
+          fontSize: 32,
+          color: textTitle,
+          margin: "0 0 8px",
+        }}
+      >
+        Resources
+      </p>
+      <p
+        style={{
+          fontFamily: "'Space Mono', monospace",
+          fontSize: 11,
+          color: textDesc,
+          margin: "0 0 32px",
+        }}
+      >
+        Select a resource scenario to explore
+      </p>
+      <TypeSelectionGrid
+        items={oomKilledSubMeta}
+        isDark={isDark}
+        textTitle={textTitle}
+        textDesc={textDesc}
+        badgeLabel="RESOURCE TYPE"
+        onSelect={(key) => setActiveView(key)}
+      />
+    </>,
+  );
+}
+
+if (activeView === "oom-killed") {
+  return (
+    <div style={{ minHeight: "100vh", backgroundColor: bg }}>
+      <style>{GLOBAL_STYLES}</style>
+      <div
+        style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+      >
+        {renderBackButton("Back to Resources", () =>
+          setActiveView("resources"),
+        )}
+      </div>
+      <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
+        <ResourceComponent />
+      </div>
+    </div>
+  );
+}
 
   // ── VIEW: Individual container deep-dives ─────────────────────────────────
   const containerViewKeys: ContainerKey[] = [
@@ -2311,6 +2465,132 @@ export default function FullViewK8s() {
               ? "rgba(168,85,247,0.18)"
               : "rgba(168,85,247,0.1)",
             color: "#7c3aed",
+          }}
+        >
+          →
+        </div>
+      </div>
+      {/* ── RESOURCES CARD ── */}
+      <div
+        className="k8s-card"
+        onClick={() => setActiveView("resources")}
+        style={{
+          backgroundColor: isDark ? "rgba(15,23,42,0.9)" : "#ffffff",
+          border: `1px solid ${isDark ? "rgba(225,29,72,0.35)" : "rgba(225,29,72,0.28)"}`,
+          boxShadow: isDark
+            ? "0 4px 24px rgba(0,0,0,0.4)"
+            : "0 4px 24px rgba(225,29,72,0.1)",
+        }}
+      >
+        <div
+          className="k8s-stripe"
+          style={{ background: "linear-gradient(90deg, #be123c, #e11d48)" }}
+        />
+        <div
+          className="k8s-card-glow"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(225,29,72,0.22) 0%, transparent 70%)",
+          }}
+        />
+        <svg className="k8s-card-bg-hex" viewBox="0 0 100 115" fill="none">
+          <polygon
+            points="50,5 93,28 93,87 50,110 7,87 7,28"
+            stroke="#e11d48"
+            strokeWidth="4"
+            fill="none"
+          />
+          <polygon
+            points="50,18 83,35 83,80 50,97 17,80 17,35"
+            stroke="#e11d48"
+            strokeWidth="2"
+            fill="none"
+          />
+        </svg>
+
+        <div className="k8s-card-inner">
+          <div
+            className="k8s-badge"
+            style={{
+              background: isDark
+                ? "rgba(225,29,72,0.13)"
+                : "rgba(225,29,72,0.08)",
+              color: "#e11d48",
+              border: "1px solid rgba(225,29,72,0.3)",
+            }}
+          >
+            <K8sLogo size={13} color="#e11d48" />
+            KUBERNETES RESOURCE
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              marginBottom: 14,
+            }}
+          >
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 14,
+                flexShrink: 0,
+                background: "linear-gradient(135deg, #e11d48 0%, #9f1239 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 4px 16px rgba(225,29,72,0.4)",
+              }}
+            >
+              <Resource />
+            </div>
+            <div>
+              <p className="k8s-card-title" style={{ color: textTitle }}>
+                Resources
+              </p>
+              <p className="k8s-card-desc" style={{ color: "#e11d48" }}>
+                v1 · core/Resource
+              </p>
+            </div>
+          </div>
+
+          <p className="k8s-card-desc" style={{ color: textDesc }}>
+            CPU and Memory limits/requests. Explore constraints and OOMKilled
+            scenarios.
+          </p>
+
+          <div
+            style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}
+          >
+            {["Requests", "Limits", "OOMKilled"].map((tag) => (
+              <span
+                key={tag}
+                style={{
+                  fontFamily: "'Space Mono', monospace",
+                  fontSize: 9,
+                  padding: "3px 9px",
+                  borderRadius: 12,
+                  background: isDark
+                    ? "rgba(225,29,72,0.11)"
+                    : "rgba(225,29,72,0.07)",
+                  color: isDark ? "#fda4af" : "#e11d48",
+                  border: "1px solid rgba(225,29,72,0.22)",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div
+          className="k8s-card-arrow"
+          style={{
+            background: isDark ? "rgba(225,29,72,0.18)" : "rgba(225,29,72,0.1)",
+            color: "#e11d48",
           }}
         >
           →
