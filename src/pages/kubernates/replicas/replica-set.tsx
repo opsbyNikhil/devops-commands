@@ -1,20 +1,54 @@
 import { useState } from "react";
 import { useTheme } from "../../../Themecontext";
 
-const yaml = `apiVersion: v1
-kind: Pod
+const yaml = `apiVersion: apps/v1
+kind: ReplicaSet
 metadata:
-  name: pod-ex-1
+  name: rp-pod
   labels:
-    env: EX-DEV
+    app: greenapp
+    env: dev
+  namespace: devnamespace
+  annotations: 
+    myecrimage: 
 spec:
-  restartPolicy: Always
-  containers:
-    - name: ex-cont-1
-      image: nginx
-      ports:
-        - containerPort: 80
-          protocol: TCP`;
+  minReadySeconds: 6s
+  replicas: 5
+  selector:
+    matchLabels:
+      app: greenapp-pod 
+  template:
+    metadata: 
+      name: rp-pod-level
+      labels:
+        app: greenapp-pod
+    spec:
+      containers:
+        - name: greenimageapp
+          image: nginx:latest
+          ports:
+            - name: greenapp-port
+              containerPort: 80
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              path: "/site"
+              port: 80
+          livenessProbe:
+            tcpSocket:
+              port: 80
+          readinessProbe:
+            exec:
+              command:
+                - touch
+                - rp{1..5}.txt
+          resources:
+            requests:
+              cpu: 100M
+              memory: 150Mi
+            limits:
+              cpu: 150M
+              memory: 200Mi`;
 
 function YamlLine({ line, isDark }: { line: string; isDark: boolean }) {
   const keyColor = isDark ? "#7dd3fc" : "#0369a1";
@@ -73,7 +107,7 @@ function YamlLine({ line, isDark }: { line: string; isDark: boolean }) {
     const coloredValue =
       value === "" ? (
         ""
-      ) : key === "restartPolicy" ? (
+      ) : key === "kind" && value === "ReplicaSet" ? (
         <span style={{ color: highlightColor, fontWeight: 600 }}>{value}</span>
       ) : /^\d+$/.test(value) ? (
         <span style={{ color: numberColor }}>{value}</span>
@@ -105,14 +139,47 @@ function YamlLine({ line, isDark }: { line: string; isDark: boolean }) {
   );
 }
 
-const scenarios = [
-  { exit: "Exit 0 (Success)", restarts: true },
-  { exit: "Exit 1 (Failure)", restarts: true },
-  { exit: "Exit 137 (OOM Kill)", restarts: true },
-  { exit: "Exit 143 (SIGTERM)", restarts: true },
+const features = [
+  { icon: "✅", text: "Supports matchLabels (equality-based selectors)" },
+  { icon: "✅", text: "Supports matchExpressions (set-based selectors)" },
+  { icon: "✅", text: "Ensures desired number of Pods are running" },
+  { icon: "✅", text: "Used internally by Deployments" },
+  { icon: "✅", text: "Works with rolling updates (via Deployment)" },
+  { icon: "🔄", text: "Supports version rollbacks (v1 → v2 → v1)" },
 ];
 
-export default function Always() {
+const selectors = [
+  {
+    type: "matchLabels",
+    description: "Equality-based - matches pods with specific labels",
+    example: "app: greenapp-pod",
+  },
+  {
+    type: "matchExpressions",
+    description: "Set-based - supports In, NotIn, Exists, DoesNotExist",
+    example: "In (dev, staging, prod)",
+  },
+];
+
+const probes = [
+  {
+    name: "startupProbe",
+    purpose: "Slow-starting containers",
+    timing: "Runs first, disables other probes until success",
+  },
+  {
+    name: "livenessProbe",
+    purpose: "Container health check",
+    timing: "Runs periodically, restarts on failure",
+  },
+  {
+    name: "readinessProbe",
+    purpose: "Traffic readiness",
+    timing: "Runs periodically, removes from service on failure",
+  },
+];
+
+export default function ReplicaSet() {
   const [copied, setCopied] = useState(false);
   const { isDark } = useTheme();
 
@@ -142,6 +209,8 @@ export default function Always() {
     ? "rgba(52,211,153,0.2)"
     : "rgba(5,150,105,0.15)";
   const accentBlue = isDark ? "#7dd3fc" : "#0284c7";
+  const accentPurple = isDark ? "#c4b5fd" : "#7c3aed";
+  const accentYellow = isDark ? "#fbbf24" : "#d97706";
 
   return (
     <div
@@ -158,29 +227,33 @@ export default function Always() {
       }}
     >
       <style>{`
-        @keyframes pulse {
-          0%, 100% { box-shadow: 0 0 0 0 ${accentGreen}66; }
-          50% { box-shadow: 0 0 0 8px ${accentGreen}00; }
-        }
         @keyframes fadePulse {
           0%, 100% { opacity: 0.3; }
           50% { opacity: 1; }
         }
-        .badge-pulse { animation: pulse 2s ease-in-out infinite; }
+        @keyframes successPulse {
+          0%, 100% { box-shadow: 0 0 0 0 ${accentGreen}66; }
+          50% { box-shadow: 0 0 0 8px ${accentGreen}00; }
+        }
         .flow-arrow { animation: fadePulse 2s ease-in-out infinite; }
-        .copy-btn:hover {
+        .copy-btn-rs:hover {
           background: ${accentGreenLight} !important;
           border-color: ${accentGreen} !important;
         }
-        .scenario-row:hover {
+        .feature-item:hover {
           background: ${accentGreenLight} !important;
+          transform: translateX(3px);
+        }
+        .selector-item:hover {
+          background: ${isDark ? "rgba(52,211,153,0.05)" : "rgba(5,150,105,0.03)"};
+          transform: translateX(3px);
         }
       `}</style>
 
       <div
         style={{
           width: "100%",
-          maxWidth: "1200px",
+          maxWidth: "1400px",
           background: cardBg,
           borderRadius: "32px",
           border: `1px solid ${cardBorder}`,
@@ -206,15 +279,36 @@ export default function Always() {
             <div>
               <div
                 style={{
-                  fontSize: "12px",
-                  fontWeight: 500,
-                  letterSpacing: "0.6px",
-                  color: accentGreen,
-                  textTransform: "uppercase",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
                   marginBottom: "10px",
                 }}
               >
-                restartPolicy
+                <span
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 500,
+                    letterSpacing: "0.6px",
+                    color: accentGreen,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Modern Controller
+                </span>
+                <span
+                  style={{
+                    background: accentGreenLight,
+                    border: `1px solid ${accentGreenBorder}`,
+                    borderRadius: "20px",
+                    padding: "2px 8px",
+                    fontSize: "10px",
+                    fontWeight: 500,
+                    color: accentGreen,
+                  }}
+                >
+                  Recommended
+                </span>
               </div>
               <div
                 style={{
@@ -225,22 +319,22 @@ export default function Always() {
                   fontFamily: "'Inter', -apple-system, sans-serif",
                 }}
               >
-                Always
+                ReplicaSet
               </div>
               <div
                 style={{
                   fontSize: "14px",
                   color: textSecondary,
                   marginTop: "10px",
-                  maxWidth: "480px",
+                  maxWidth: "560px",
                   lineHeight: 1.5,
                 }}
               >
-                Container restarts{" "}
+                The improved version of ReplicationController —{" "}
                 <strong style={{ color: accentGreen, fontWeight: 500 }}>
-                  unconditionally
+                  used by Deployments
                 </strong>{" "}
-                whenever it stops — regardless of exit status.
+                to manage Pods. Supports both equality and set-based selectors.
               </div>
             </div>
             <div
@@ -254,7 +348,7 @@ export default function Always() {
                 border: `1px solid ${accentGreenBorder}`,
               }}
             >
-              <span style={{ fontSize: "10px", color: accentGreen }}>●</span>
+              <span style={{ fontSize: "14px", color: accentGreen }}>✓</span>
               <span
                 style={{
                   fontSize: "12px",
@@ -263,7 +357,7 @@ export default function Always() {
                   letterSpacing: "0.3px",
                 }}
               >
-                ALWAYS ON
+                MODERN — USE THIS
               </span>
             </div>
           </div>
@@ -274,9 +368,10 @@ export default function Always() {
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
             gap: "0",
-            minHeight: "520px",
+            minHeight: "580px",
           }}
         >
+          {/* LEFT COLUMN: Spec + YAML */}
           <div
             style={{
               borderRight: `1px solid ${headerBorder}`,
@@ -309,7 +404,7 @@ export default function Always() {
                     fontFamily: "'SF Mono', monospace",
                   }}
                 >
-                  v1
+                  apps/v1
                 </span>
                 <span
                   style={{
@@ -324,20 +419,77 @@ export default function Always() {
                     fontFamily: "'SF Mono', monospace",
                   }}
                 >
-                  spec/restartPolicy
+                  ReplicaSet
                 </span>
               </div>
+
+              {/* Features Section */}
+              <div
+                style={{
+                  background: accentGreenLight,
+                  borderRadius: "16px",
+                  padding: "16px",
+                  marginBottom: "20px",
+                  border: `1px solid ${accentGreenBorder}`,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    color: accentGreen,
+                    marginBottom: "12px",
+                    letterSpacing: "0.3px",
+                  }}
+                >
+                  ✨ Key Features
+                </div>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "8px",
+                  }}
+                >
+                  {features.map((feat, i) => (
+                    <div
+                      key={i}
+                      className="feature-item"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        padding: "6px 8px",
+                        transition: "all 0.2s",
+                        borderRadius: "8px",
+                      }}
+                    >
+                      <span style={{ fontSize: "12px" }}>{feat.icon}</span>
+                      <span
+                        style={{
+                          fontSize: "11px",
+                          color: textSecondary,
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        {feat.text}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <p
                 style={{
                   fontSize: "14px",
                   lineHeight: 1.6,
                   color: textSecondary,
-                  marginBottom: "20px",
+                  marginBottom: "16px",
                 }}
               >
-                Defines pod restart behavior across all containers.{" "}
-                <strong style={{ fontWeight: 500 }}>Always</strong> ensures
-                containers are re-created after any termination.
+                ReplicaSet ensures that the specified number of Pod replicas are
+                running at all times. It's the modern replacement for
+                ReplicationController and is the building block for Deployments.
               </p>
 
               <div
@@ -349,12 +501,9 @@ export default function Always() {
                 }}
               >
                 {[
-                  { label: "Unconditional", color: accentGreen },
-                  {
-                    label: "Long-running",
-                    color: isDark ? "#fbbf24" : "#d97706",
-                  },
-                  { label: "Daemon friendly", color: accentBlue },
+                  { label: "Set-based selectors", color: accentGreen },
+                  { label: "Rolling updates ready", color: accentBlue },
+                  { label: "Deployment compatible", color: accentPurple },
                 ].map((tag) => (
                   <span
                     key={tag.label}
@@ -374,6 +523,7 @@ export default function Always() {
               </div>
             </div>
 
+            {/* YAML Card */}
             <div>
               <div
                 style={{
@@ -392,10 +542,10 @@ export default function Always() {
                     textTransform: "uppercase",
                   }}
                 >
-                  Example — always.yaml
+                  Example — replicaset.yaml
                 </span>
                 <button
-                  className="copy-btn"
+                  className="copy-btn-rs"
                   onClick={handleCopy}
                   style={{
                     background: "transparent",
@@ -419,6 +569,7 @@ export default function Always() {
                   borderRadius: "20px",
                   border: `1px solid ${codeBorder}`,
                   overflow: "auto",
+                  maxHeight: "400px",
                 }}
               >
                 <div style={{ padding: "20px 24px" }}>
@@ -429,6 +580,7 @@ export default function Always() {
               </div>
             </div>
 
+            {/* kubectl hint */}
             <div
               style={{
                 background: accentGreenLight,
@@ -450,11 +602,13 @@ export default function Always() {
                   fontWeight: 450,
                 }}
               >
-                kubectl apply -f always.yaml
+                kubectl get rs &nbsp;&nbsp; kubectl scale rs rp-pod --replicas=3
+                &nbsp;&nbsp; kubectl describe rs rp-pod
               </code>
             </div>
           </div>
 
+          {/* RIGHT COLUMN: Visual + Selector Info */}
           <div
             style={{
               padding: "28px 32px",
@@ -463,6 +617,7 @@ export default function Always() {
               gap: "32px",
             }}
           >
+            {/* Visual Flow Diagram */}
             <div>
               <div
                 style={{
@@ -474,7 +629,7 @@ export default function Always() {
                   marginBottom: "18px",
                 }}
               >
-                Behavior
+                How It Works
               </div>
               <div
                 style={{
@@ -494,16 +649,17 @@ export default function Always() {
                   }}
                 >
                   {[
-                    "Container Running",
-                    "Container Stops",
-                    "Restart Always",
+                    "ReplicaSet Created",
+                    "5 Replicas",
+                    "Pod Management",
+                    "Rolling Updates",
                   ].map((step, idx) => (
                     <div key={step} style={{ flex: 1, textAlign: "center" }}>
                       <div
                         style={{
-                          background: idx === 2 ? accentGreenLight : tagBg,
+                          background: idx === 1 ? accentGreenLight : tagBg,
                           border:
-                            idx === 2
+                            idx === 1
                               ? `1px solid ${accentGreenBorder}`
                               : `1px solid ${tagBorder}`,
                           borderRadius: "16px",
@@ -514,22 +670,28 @@ export default function Always() {
                           style={{
                             fontSize: "26px",
                             marginBottom: "8px",
-                            opacity: idx === 2 ? 1 : 0.6,
+                            opacity: idx === 1 ? 1 : 0.6,
                           }}
                         >
-                          {idx === 0 ? "🟢" : idx === 1 ? "⏹️" : "🔄"}
+                          {idx === 0
+                            ? "🎯"
+                            : idx === 1
+                              ? "5"
+                              : idx === 2
+                                ? "📦"
+                                : "🔄"}
                         </div>
                         <div
                           style={{
-                            fontSize: "12px",
+                            fontSize: "11px",
                             fontWeight: 450,
-                            color: idx === 2 ? accentGreen : textSecondary,
+                            color: idx === 1 ? accentGreen : textSecondary,
                           }}
                         >
                           {step}
                         </div>
                       </div>
-                      {idx < 2 && (
+                      {idx < 3 && (
                         <div
                           className="flow-arrow"
                           style={{
@@ -554,12 +716,13 @@ export default function Always() {
                     paddingTop: "16px",
                   }}
                 >
-                  <span style={{ color: accentGreen }}>✓</span> Restart
-                  triggered on Exit 0, Exit 1, OOM Kill, SIGTERM
+                  <span style={{ color: accentGreen }}>✓</span> Supports rolling
+                  updates & rollbacks via Deployment
                 </div>
               </div>
             </div>
 
+            {/* Selector Types */}
             <div>
               <div
                 style={{
@@ -571,7 +734,7 @@ export default function Always() {
                   marginBottom: "14px",
                 }}
               >
-                Exit Code Matrix
+                Selector Types
               </div>
               <div
                 style={{
@@ -581,51 +744,61 @@ export default function Always() {
                   overflow: "hidden",
                 }}
               >
-                {scenarios.map((s, i) => (
+                {selectors.map((selector, i) => (
                   <div
                     key={i}
-                    className="scenario-row"
+                    className="selector-item"
                     style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      padding: "12px 20px",
+                      padding: "14px 16px",
                       borderBottom:
-                        i !== scenarios.length - 1
+                        i !== selectors.length - 1
                           ? `1px solid ${headerBorder}`
                           : "none",
-                      transition: "background 0.2s",
+                      transition: "all 0.2s",
                     }}
                   >
-                    <span
+                    <div
                       style={{
-                        fontFamily: "'SF Mono', monospace",
-                        fontSize: "12px",
-                        color: textPrimary,
-                      }}
-                    >
-                      {s.exit}
-                    </span>
-                    <span
-                      style={{
-                        background: accentGreenLight,
-                        color: accentGreen,
-                        fontSize: "11px",
-                        fontWeight: 500,
-                        padding: "4px 14px",
-                        borderRadius: "24px",
-                        display: "inline-flex",
+                        display: "flex",
                         alignItems: "center",
-                        gap: "6px",
+                        gap: "10px",
+                        marginBottom: "6px",
                       }}
                     >
-                      <span>↻</span> RESTART
-                    </span>
+                      <span
+                        style={{
+                          fontSize: "13px",
+                          fontWeight: 600,
+                          color: accentGreen,
+                        }}
+                      >
+                        {selector.type}
+                      </span>
+                      <span style={{ fontSize: "11px", color: textMuted }}>
+                        {selector.description}
+                      </span>
+                    </div>
+                    <code
+                      style={{
+                        fontSize: "11px",
+                        color: accentBlue,
+                        background: isDark
+                          ? "rgba(0,0,0,0.3)"
+                          : "rgba(0,0,0,0.04)",
+                        padding: "4px 8px",
+                        borderRadius: "6px",
+                        display: "inline-block",
+                        fontFamily: "'SF Mono', monospace",
+                      }}
+                    >
+                      {selector.example}
+                    </code>
                   </div>
                 ))}
               </div>
             </div>
 
+            {/* Probes Explanation */}
             <div>
               <div
                 style={{
@@ -637,38 +810,131 @@ export default function Always() {
                   marginBottom: "14px",
                 }}
               >
-                Best For
+                Probes & Health Checks
               </div>
               <div
                 style={{
+                  background: codeBg,
+                  borderRadius: "16px",
+                  border: `1px solid ${codeBorder}`,
+                  overflow: "hidden",
+                }}
+              >
+                {probes.map((probe, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      padding: "12px 16px",
+                      borderBottom:
+                        i !== probes.length - 1
+                          ? `1px solid ${headerBorder}`
+                          : "none",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          color: accentYellow,
+                        }}
+                      >
+                        {probe.name}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "11px",
+                        color: textSecondary,
+                        marginBottom: "4px",
+                      }}
+                    >
+                      {probe.purpose}
+                    </div>
+                    <div style={{ fontSize: "10px", color: textMuted }}>
+                      {probe.timing}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Version Rollback Note */}
+            <div
+              style={{
+                background: isDark
+                  ? "rgba(52,211,153,0.06)"
+                  : "rgba(5,150,105,0.04)",
+                border: `1px solid ${accentGreenBorder}`,
+                borderRadius: "14px",
+                padding: "14px 16px",
+              }}
+            >
+              <div
+                style={{
                   display: "flex",
-                  flexWrap: "wrap",
+                  alignItems: "center",
+                  gap: "10px",
+                  marginBottom: "8px",
+                }}
+              >
+                <span style={{ fontSize: "16px" }}>🔄</span>
+                <span
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: accentGreen,
+                  }}
+                >
+                  Version Management
+                </span>
+              </div>
+              <p
+                style={{
+                  fontSize: "12px",
+                  color: textSecondary,
+                  lineHeight: 1.5,
+                }}
+              >
+                When used with Deployments, ReplicaSets enable seamless version
+                rollbacks:
+                <strong style={{ color: accentGreen }}> v1 → v2 → v1 </strong>
+                without downtime.
+              </p>
+              <div
+                style={{
+                  display: "flex",
                   gap: "8px",
+                  marginTop: "10px",
                 }}
               >
                 {[
-                  "nginx",
-                  "API Gateway",
-                  "Redis",
-                  "Background Worker",
-                  "Web Server",
-                ].map((item) => (
-                  <span
-                    key={item}
+                  "kubectl rollout status",
+                  "kubectl rollout history",
+                  "kubectl rollout undo",
+                ].map((cmd) => (
+                  <code
+                    key={cmd}
                     style={{
-                      background: isDark
-                        ? "rgba(125,211,252,0.06)"
-                        : "rgba(2,132,199,0.04)",
-                      border: `1px solid ${isDark ? "rgba(125,211,252,0.12)" : "rgba(2,132,199,0.1)"}`,
-                      borderRadius: "24px",
-                      padding: "5px 16px",
-                      fontSize: "12px",
+                      fontSize: "10px",
                       color: accentBlue,
-                      fontWeight: 450,
+                      background: isDark
+                        ? "rgba(0,0,0,0.3)"
+                        : "rgba(0,0,0,0.04)",
+                      padding: "3px 8px",
+                      borderRadius: "6px",
+                      fontFamily: "'SF Mono', monospace",
                     }}
                   >
-                    {item}
-                  </span>
+                    {cmd}
+                  </code>
                 ))}
               </div>
             </div>

@@ -2,27 +2,32 @@ import { useState } from "react";
 import { useTheme } from "../../../Themecontext";
 
 const yaml = `apiVersion: v1
-kind: Pod
+kind: ReplicationController
 metadata:
-  name: pod-ex-1
-  labels:
-    env: EX-DEV
+  name: pod-rpc
 spec:
-  restartPolicy: Always
-  containers:
-    - name: ex-cont-1
-      image: nginx
-      ports:
-        - containerPort: 80
-          protocol: TCP`;
+  minReadySeconds: 5
+  replicas: 5
+  selector:
+    app: dev
+  template:
+    metadata: 
+      name: my-rpc
+      labels:
+        app: dev
+    spec:
+      containers:
+        - name: my-cont-rpc
+          image: nginx
+          ports:
+            - containerPort: 80`;
 
 function YamlLine({ line, isDark }: { line: string; isDark: boolean }) {
-  const keyColor = isDark ? "#7dd3fc" : "#0369a1";
-  const valueColor = isDark ? "#86efac" : "#15803d";
-  const numberColor = isDark ? "#fbbf24" : "#b45309";
-  const stringColor = isDark ? "#f9a8d4" : "#be185d";
-  const commentColor = isDark ? "#6b7280" : "#4b5563";
-  const highlightColor = isDark ? "#34d399" : "#059669";
+  const keyColor = isDark ? "#fca5a5" : "#dc2626";
+  const valueColor = isDark ? "#c4b5fd" : "#7c3aed";
+  const numberColor = isDark ? "#f472b6" : "#db2777";
+  const stringColor = isDark ? "#a5f3fc" : "#0891b2";
+  const highlightColor = isDark ? "#f87171" : "#dc2626";
 
   const renderLine = (text: string) => {
     const trimmed = text.trimStart();
@@ -30,7 +35,9 @@ function YamlLine({ line, isDark }: { line: string; isDark: boolean }) {
     const spaces = "\u00a0".repeat(indent);
 
     if (trimmed.startsWith("#")) {
-      return <span style={{ color: commentColor }}>{text}</span>;
+      return (
+        <span style={{ color: isDark ? "#6b7280" : "#4b5563" }}>{text}</span>
+      );
     }
 
     const colonIdx = trimmed.indexOf(":");
@@ -73,7 +80,7 @@ function YamlLine({ line, isDark }: { line: string; isDark: boolean }) {
     const coloredValue =
       value === "" ? (
         ""
-      ) : key === "restartPolicy" ? (
+      ) : key === "kind" && value === "ReplicationController" ? (
         <span style={{ color: highlightColor, fontWeight: 600 }}>{value}</span>
       ) : /^\d+$/.test(value) ? (
         <span style={{ color: numberColor }}>{value}</span>
@@ -105,14 +112,32 @@ function YamlLine({ line, isDark }: { line: string; isDark: boolean }) {
   );
 }
 
-const scenarios = [
-  { exit: "Exit 0 (Success)", restarts: true },
-  { exit: "Exit 1 (Failure)", restarts: true },
-  { exit: "Exit 137 (OOM Kill)", restarts: true },
-  { exit: "Exit 143 (SIGTERM)", restarts: true },
+const limitations = [
+  { icon: "❌", text: "Only supports equality-based selectors (matchLabels)" },
+  {
+    icon: "❌",
+    text: "Does NOT support set-based selectors (matchExpressions)",
+  },
+  { icon: "❌", text: "Not used with modern Deployments" },
+  { icon: "❌", text: "No built-in support for rolling updates or rollbacks" },
 ];
 
-export default function Always() {
+const comparisons = [
+  {
+    feature: "Selector Support",
+    rc: "Equality-based only",
+    rs: "Equality + Set-based",
+  },
+  { feature: "Rolling Updates", rc: "Not supported", rs: "Supported" },
+  { feature: "Rollbacks", rc: "Not supported", rs: "Supported" },
+  {
+    feature: "Modern Deployments",
+    rc: "Not compatible",
+    rs: "Fully compatible",
+  },
+];
+
+export default function ReplicaController() {
   const [copied, setCopied] = useState(false);
   const { isDark } = useTheme();
 
@@ -134,14 +159,20 @@ export default function Always() {
   const codeBorder = isDark ? "#1e1e28" : "#e2e8f0";
   const tagBg = isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)";
   const tagBorder = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
+  const accentRed = isDark ? "#f87171" : "#dc2626";
+  const accentRedLight = isDark
+    ? "rgba(248,113,113,0.08)"
+    : "rgba(220,38,38,0.06)";
+  const accentRedBorder = isDark
+    ? "rgba(248,113,113,0.2)"
+    : "rgba(220,38,38,0.15)";
+  const accentBlue = isDark ? "#7dd3fc" : "#0284c7";
+  const accentYellow = isDark ? "#fbbf24" : "#d97706";
   const accentGreen = isDark ? "#34d399" : "#059669";
   const accentGreenLight = isDark
     ? "rgba(52,211,153,0.08)"
     : "rgba(5,150,105,0.06)";
-  const accentGreenBorder = isDark
-    ? "rgba(52,211,153,0.2)"
-    : "rgba(5,150,105,0.15)";
-  const accentBlue = isDark ? "#7dd3fc" : "#0284c7";
+
 
   return (
     <div
@@ -158,22 +189,27 @@ export default function Always() {
       }}
     >
       <style>{`
-        @keyframes pulse {
-          0%, 100% { box-shadow: 0 0 0 0 ${accentGreen}66; }
-          50% { box-shadow: 0 0 0 8px ${accentGreen}00; }
-        }
         @keyframes fadePulse {
           0%, 100% { opacity: 0.3; }
           50% { opacity: 1; }
         }
-        .badge-pulse { animation: pulse 2s ease-in-out infinite; }
-        .flow-arrow { animation: fadePulse 2s ease-in-out infinite; }
-        .copy-btn:hover {
-          background: ${accentGreenLight} !important;
-          border-color: ${accentGreen} !important;
+        @keyframes warningPulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.6; }
         }
-        .scenario-row:hover {
-          background: ${accentGreenLight} !important;
+        .flow-arrow { animation: fadePulse 2s ease-in-out infinite; }
+        .warning-icon { animation: warningPulse 2s ease-in-out infinite; }
+        .copy-btn-rc:hover {
+          background: ${accentRedLight} !important;
+          border-color: ${accentRed} !important;
+        }
+        .comparison-row:hover {
+          background: ${accentRedLight} !important;
+          transform: translateX(3px);
+        }
+        .limitation-item:hover {
+          background: ${isDark ? "rgba(248,113,113,0.05)" : "rgba(220,38,38,0.03)"};
+          transform: translateX(3px);
         }
       `}</style>
 
@@ -206,15 +242,36 @@ export default function Always() {
             <div>
               <div
                 style={{
-                  fontSize: "12px",
-                  fontWeight: 500,
-                  letterSpacing: "0.6px",
-                  color: accentGreen,
-                  textTransform: "uppercase",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
                   marginBottom: "10px",
                 }}
               >
-                restartPolicy
+                <span
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 500,
+                    letterSpacing: "0.6px",
+                    color: accentRed,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Legacy Controller
+                </span>
+                <span
+                  style={{
+                    background: accentRedLight,
+                    border: `1px solid ${accentRedBorder}`,
+                    borderRadius: "20px",
+                    padding: "2px 8px",
+                    fontSize: "10px",
+                    fontWeight: 500,
+                    color: accentRed,
+                  }}
+                >
+                  Deprecated
+                </span>
               </div>
               <div
                 style={{
@@ -225,22 +282,23 @@ export default function Always() {
                   fontFamily: "'Inter', -apple-system, sans-serif",
                 }}
               >
-                Always
+                ReplicationController
               </div>
               <div
                 style={{
                   fontSize: "14px",
                   color: textSecondary,
                   marginTop: "10px",
-                  maxWidth: "480px",
+                  maxWidth: "520px",
                   lineHeight: 1.5,
                 }}
               >
-                Container restarts{" "}
-                <strong style={{ color: accentGreen, fontWeight: 500 }}>
-                  unconditionally
+                The older way of managing Pods —{" "}
+                <strong style={{ color: accentRed, fontWeight: 500 }}>
+                  mostly deprecated
                 </strong>{" "}
-                whenever it stops — regardless of exit status.
+                and replaced by ReplicaSets. Does not support rolling updates or
+                set-based selectors.
               </div>
             </div>
             <div
@@ -248,13 +306,18 @@ export default function Always() {
                 display: "flex",
                 gap: "8px",
                 alignItems: "center",
-                background: accentGreenLight,
+                background: accentRedLight,
                 padding: "6px 16px",
                 borderRadius: "40px",
-                border: `1px solid ${accentGreenBorder}`,
+                border: `1px solid ${accentRedBorder}`,
               }}
             >
-              <span style={{ fontSize: "10px", color: accentGreen }}>●</span>
+              <span
+                className="warning-icon"
+                style={{ fontSize: "14px", color: accentRed }}
+              >
+                ⚠️
+              </span>
               <span
                 style={{
                   fontSize: "12px",
@@ -263,7 +326,7 @@ export default function Always() {
                   letterSpacing: "0.3px",
                 }}
               >
-                ALWAYS ON
+                LEGACY — AVOID
               </span>
             </div>
           </div>
@@ -274,9 +337,10 @@ export default function Always() {
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
             gap: "0",
-            minHeight: "520px",
+            minHeight: "540px",
           }}
         >
+          {/* LEFT COLUMN: Spec + YAML */}
           <div
             style={{
               borderRight: `1px solid ${headerBorder}`,
@@ -314,9 +378,9 @@ export default function Always() {
                 <span
                   style={{
                     background: isDark
-                      ? "rgba(52,211,153,0.12)"
-                      : "rgba(5,150,105,0.06)",
-                    color: accentGreen,
+                      ? "rgba(248,113,113,0.12)"
+                      : "rgba(220,38,38,0.06)",
+                    color: accentRed,
                     fontSize: "11px",
                     fontWeight: 500,
                     padding: "4px 12px",
@@ -324,9 +388,54 @@ export default function Always() {
                     fontFamily: "'SF Mono', monospace",
                   }}
                 >
-                  spec/restartPolicy
+                  ReplicationController
                 </span>
               </div>
+
+              {/* Key Points */}
+              <div
+                style={{
+                  background: isDark
+                    ? "rgba(248,113,113,0.05)"
+                    : "rgba(220,38,38,0.03)",
+                  borderRadius: "16px",
+                  padding: "16px",
+                  marginBottom: "20px",
+                  border: `1px solid ${accentRedBorder}`,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    color: accentRed,
+                    marginBottom: "12px",
+                    letterSpacing: "0.3px",
+                  }}
+                >
+                  🔴 Key Limitations
+                </div>
+                {limitations.map((lim, i) => (
+                  <div
+                    key={i}
+                    className="limitation-item"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      padding: "6px 0",
+                      transition: "all 0.2s",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <span style={{ fontSize: "12px" }}>{lim.icon}</span>
+                    <span style={{ fontSize: "12px", color: textSecondary }}>
+                      {lim.text}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
               <p
                 style={{
                   fontSize: "14px",
@@ -335,9 +444,9 @@ export default function Always() {
                   marginBottom: "20px",
                 }}
               >
-                Defines pod restart behavior across all containers.{" "}
-                <strong style={{ fontWeight: 500 }}>Always</strong> ensures
-                containers are re-created after any termination.
+                ReplicationController ensures that the specified number of Pod
+                replicas are running at all times. However, it lacks many
+                features available in modern ReplicaSets and Deployments.
               </p>
 
               <div
@@ -349,12 +458,9 @@ export default function Always() {
                 }}
               >
                 {[
-                  { label: "Unconditional", color: accentGreen },
-                  {
-                    label: "Long-running",
-                    color: isDark ? "#fbbf24" : "#d97706",
-                  },
-                  { label: "Daemon friendly", color: accentBlue },
+                  { label: "Equality selectors only", color: accentRed },
+                  { label: "No rolling updates", color: accentYellow },
+                  { label: "Legacy controller", color: accentBlue },
                 ].map((tag) => (
                   <span
                     key={tag.label}
@@ -374,6 +480,7 @@ export default function Always() {
               </div>
             </div>
 
+            {/* YAML Card */}
             <div>
               <div
                 style={{
@@ -392,16 +499,16 @@ export default function Always() {
                     textTransform: "uppercase",
                   }}
                 >
-                  Example — always.yaml
+                  Example — replicationcontroller.yaml
                 </span>
                 <button
-                  className="copy-btn"
+                  className="copy-btn-rc"
                   onClick={handleCopy}
                   style={{
                     background: "transparent",
                     border: `1px solid ${isDark ? "#2a2a35" : "#e2e8f0"}`,
                     borderRadius: "8px",
-                    color: copied ? accentGreen : textMuted,
+                    color: copied ? accentRed : textMuted,
                     fontSize: "11px",
                     padding: "5px 14px",
                     cursor: "pointer",
@@ -429,10 +536,54 @@ export default function Always() {
               </div>
             </div>
 
+            {/* Note about Pod order */}
             <div
               style={{
-                background: accentGreenLight,
-                border: `1px solid ${accentGreenBorder}`,
+                background: isDark
+                  ? "rgba(251,191,36,0.08)"
+                  : "rgba(217,119,6,0.04)",
+                border: `1px solid ${isDark ? "rgba(251,191,36,0.2)" : "rgba(217,119,6,0.15)"}`,
+                borderRadius: "14px",
+                padding: "12px 16px",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  marginBottom: "6px",
+                }}
+              >
+                <span style={{ fontSize: "14px" }}>📌</span>
+                <span
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    color: accentYellow,
+                  }}
+                >
+                  Important Note
+                </span>
+              </div>
+              <p
+                style={{
+                  fontSize: "12px",
+                  color: textSecondary,
+                  lineHeight: 1.5,
+                }}
+              >
+                Kubernetes does <strong>not guarantee</strong> the order of Pod
+                creation or deletion. When scaling to 6 replicas, Pod names and
+                deletion order are non-deterministic.
+              </p>
+            </div>
+
+            {/* kubectl hint */}
+            <div
+              style={{
+                background: accentRedLight,
+                border: `1px solid ${accentRedBorder}`,
                 borderRadius: "14px",
                 padding: "12px 16px",
                 display: "flex",
@@ -444,17 +595,19 @@ export default function Always() {
               <code
                 style={{
                   fontSize: "12px",
-                  color: accentGreen,
+                  color: accentRed,
                   background: "transparent",
                   fontFamily: "'SF Mono', monospace",
                   fontWeight: 450,
                 }}
               >
-                kubectl apply -f always.yaml
+                kubectl get rc &nbsp;&nbsp; kubectl scale rc pod-rpc
+                --replicas=3
               </code>
             </div>
           </div>
 
+          {/* RIGHT COLUMN: Visual + Comparison */}
           <div
             style={{
               padding: "28px 32px",
@@ -463,6 +616,7 @@ export default function Always() {
               gap: "32px",
             }}
           >
+            {/* Visual Flow Diagram */}
             <div>
               <div
                 style={{
@@ -474,7 +628,7 @@ export default function Always() {
                   marginBottom: "18px",
                 }}
               >
-                Behavior
+                How It Works
               </div>
               <div
                 style={{
@@ -494,17 +648,18 @@ export default function Always() {
                   }}
                 >
                   {[
-                    "Container Running",
-                    "Container Stops",
-                    "Restart Always",
+                    "RC Created",
+                    "5 Replicas",
+                    "Pod Management",
+                    "No Rolling Updates",
                   ].map((step, idx) => (
                     <div key={step} style={{ flex: 1, textAlign: "center" }}>
                       <div
                         style={{
-                          background: idx === 2 ? accentGreenLight : tagBg,
+                          background: idx === 1 ? accentGreenLight : tagBg,
                           border:
-                            idx === 2
-                              ? `1px solid ${accentGreenBorder}`
+                            idx === 1
+                              ? `1px solid rgba(52,211,153,0.2)`
                               : `1px solid ${tagBorder}`,
                           borderRadius: "16px",
                           padding: "14px 8px",
@@ -514,27 +669,33 @@ export default function Always() {
                           style={{
                             fontSize: "26px",
                             marginBottom: "8px",
-                            opacity: idx === 2 ? 1 : 0.6,
+                            opacity: idx === 1 ? 1 : 0.6,
                           }}
                         >
-                          {idx === 0 ? "🟢" : idx === 1 ? "⏹️" : "🔄"}
+                          {idx === 0
+                            ? "🎯"
+                            : idx === 1
+                              ? "5"
+                              : idx === 2
+                                ? "📦"
+                                : "❌"}
                         </div>
                         <div
                           style={{
-                            fontSize: "12px",
+                            fontSize: "11px",
                             fontWeight: 450,
-                            color: idx === 2 ? accentGreen : textSecondary,
+                            color: idx === 1 ? accentGreen : textSecondary,
                           }}
                         >
                           {step}
                         </div>
                       </div>
-                      {idx < 2 && (
+                      {idx < 3 && (
                         <div
                           className="flow-arrow"
                           style={{
                             fontSize: "20px",
-                            color: accentGreen,
+                            color: accentRed,
                             margin: "10px 0",
                           }}
                         >
@@ -554,12 +715,13 @@ export default function Always() {
                     paddingTop: "16px",
                   }}
                 >
-                  <span style={{ color: accentGreen }}>✓</span> Restart
-                  triggered on Exit 0, Exit 1, OOM Kill, SIGTERM
+                  <span style={{ color: accentRed }}>⚠️</span> Maintains replica
+                  count but lacks update strategies
                 </div>
               </div>
             </div>
 
+            {/* RC vs ReplicaSet Comparison */}
             <div>
               <div
                 style={{
@@ -571,7 +733,7 @@ export default function Always() {
                   marginBottom: "14px",
                 }}
               >
-                Exit Code Matrix
+                RC vs ReplicaSet
               </div>
               <div
                 style={{
@@ -581,51 +743,75 @@ export default function Always() {
                   overflow: "hidden",
                 }}
               >
-                {scenarios.map((s, i) => (
-                  <div
-                    key={i}
-                    className="scenario-row"
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr 1fr",
+                    background: isDark
+                      ? "rgba(255,255,255,0.03)"
+                      : "rgba(0,0,0,0.02)",
+                    borderBottom: `1px solid ${headerBorder}`,
+                    padding: "12px 16px",
+                  }}
+                >
+                  <span
                     style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      padding: "12px 20px",
-                      borderBottom:
-                        i !== scenarios.length - 1
-                          ? `1px solid ${headerBorder}`
-                          : "none",
-                      transition: "background 0.2s",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      color: textPrimary,
                     }}
                   >
-                    <span
-                      style={{
-                        fontFamily: "'SF Mono', monospace",
-                        fontSize: "12px",
-                        color: textPrimary,
-                      }}
-                    >
-                      {s.exit}
+                    Feature
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      color: accentRed,
+                    }}
+                  >
+                    ReplicationController
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      color: accentGreen,
+                    }}
+                  >
+                    ReplicaSet
+                  </span>
+                </div>
+                {comparisons.map((item, i) => (
+                  <div
+                    key={i}
+                    className="comparison-row"
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr 1fr",
+                      padding: "10px 16px",
+                      borderBottom:
+                        i !== comparisons.length - 1
+                          ? `1px solid ${headerBorder}`
+                          : "none",
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    <span style={{ fontSize: "12px", color: textPrimary }}>
+                      {item.feature}
                     </span>
-                    <span
-                      style={{
-                        background: accentGreenLight,
-                        color: accentGreen,
-                        fontSize: "11px",
-                        fontWeight: 500,
-                        padding: "4px 14px",
-                        borderRadius: "24px",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "6px",
-                      }}
-                    >
-                      <span>↻</span> RESTART
+                    <span style={{ fontSize: "12px", color: accentRed }}>
+                      {item.rc}
+                    </span>
+                    <span style={{ fontSize: "12px", color: accentGreen }}>
+                      {item.rs}
                     </span>
                   </div>
                 ))}
               </div>
             </div>
 
+            {/* Best Practices / Migration Note */}
             <div>
               <div
                 style={{
@@ -637,39 +823,88 @@ export default function Always() {
                   marginBottom: "14px",
                 }}
               >
-                Best For
+                Migration Path
               </div>
               <div
                 style={{
                   display: "flex",
-                  flexWrap: "wrap",
-                  gap: "8px",
+                  flexDirection: "column",
+                  gap: "12px",
                 }}
               >
-                {[
-                  "nginx",
-                  "API Gateway",
-                  "Redis",
-                  "Background Worker",
-                  "Web Server",
-                ].map((item) => (
-                  <span
-                    key={item}
+                <div
+                  style={{
+                    background: isDark
+                      ? "rgba(52,211,153,0.06)"
+                      : "rgba(5,150,105,0.04)",
+                    border: `1px solid ${isDark ? "rgba(52,211,153,0.15)" : "rgba(5,150,105,0.1)"}`,
+                    borderRadius: "14px",
+                    padding: "14px 16px",
+                  }}
+                >
+                  <div
                     style={{
-                      background: isDark
-                        ? "rgba(125,211,252,0.06)"
-                        : "rgba(2,132,199,0.04)",
-                      border: `1px solid ${isDark ? "rgba(125,211,252,0.12)" : "rgba(2,132,199,0.1)"}`,
-                      borderRadius: "24px",
-                      padding: "5px 16px",
-                      fontSize: "12px",
-                      color: accentBlue,
-                      fontWeight: 450,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      marginBottom: "8px",
                     }}
                   >
-                    {item}
-                  </span>
-                ))}
+                    <span style={{ fontSize: "16px" }}>🔄</span>
+                    <span
+                      style={{
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        color: accentGreen,
+                      }}
+                    >
+                      Recommended: Use ReplicaSet or Deployment
+                    </span>
+                  </div>
+                  <p
+                    style={{
+                      fontSize: "12px",
+                      color: textSecondary,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    Modern workloads should use <strong>Deployments</strong>{" "}
+                    which manage ReplicaSets and provide rolling updates,
+                    rollbacks, and better selector support.
+                  </p>
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "8px",
+                    marginTop: "4px",
+                  }}
+                >
+                  {[
+                    "kubectl rolling-update",
+                    "Equality Selectors",
+                    "Deprecated API",
+                  ].map((item) => (
+                    <span
+                      key={item}
+                      style={{
+                        background: isDark
+                          ? "rgba(248,113,113,0.06)"
+                          : "rgba(220,38,38,0.04)",
+                        border: `1px solid ${isDark ? "rgba(248,113,113,0.12)" : "rgba(220,38,38,0.1)"}`,
+                        borderRadius: "24px",
+                        padding: "4px 14px",
+                        fontSize: "11px",
+                        color: accentRed,
+                        fontWeight: 450,
+                      }}
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

@@ -41,6 +41,11 @@ import Always from "./restart-policy/always";
 import Never from "./restart-policy/never";
 import OnFailure from "./restart-policy/onfailure";
 
+
+// Replicas
+import ReplicaSet from "./replicas/replica-set";
+import ReplicaController from "./replicas/replica-controller";
+
 export const k8sCommandCount = 4;
 
 // ─────────────────────────────────────────────
@@ -589,6 +594,70 @@ function NeverIcon() {
   );
 }
 
+// ReplicaSet Icon
+function ReplicaSetIcon() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+      <rect
+        x="3"
+        y="4"
+        width="18"
+        height="16"
+        rx="2"
+        stroke="white"
+        strokeWidth="1.5"
+        fill="rgba(255,255,255,0.12)"
+      />
+      <path
+        d="M7 8h10M7 12h10M7 16h6"
+        stroke="white"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+      />
+      <circle cx="17" cy="16" r="1.5" fill="white" opacity="0.85" />
+      <path
+        d="M12 4V2M8 4V2M16 4V2"
+        stroke="white"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+// ReplicaController Icon
+function ReplicaControllerIcon() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+      <rect
+        x="4"
+        y="5"
+        width="16"
+        height="14"
+        rx="2"
+        stroke="white"
+        strokeWidth="1.5"
+        fill="rgba(255,255,255,0.1)"
+      />
+      <path
+        d="M8 9h8M8 13h5"
+        stroke="white"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+      />
+      <path
+        d="M9 5V3M15 5V3"
+        stroke="white"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+      />
+      <circle cx="8" cy="17" r="1" fill="white" opacity="0.7" />
+      <circle cx="12" cy="17" r="1" fill="white" opacity="0.7" />
+      <circle cx="16" cy="17" r="1" fill="white" opacity="0.7" />
+    </svg>
+  );
+}
+
 
 // ─────────────────────────────────────────────
 // Pod type meta config
@@ -970,6 +1039,44 @@ const restartPolicyMeta = {
     icon: <NeverIcon />,
   },
 } as const;
+
+// ─────────────────────────────────────────────
+// Replicas meta config
+// ─────────────────────────────────────────────
+
+const replicasMeta = {
+  "replica-set": {
+    label: "ReplicaSet",
+    subtitle: "apps/v1 · ReplicaSet",
+    accent: "#10b981",
+    accentDim: "rgba(16,185,129,0.15)",
+    accentBorder: "rgba(16,185,129,0.3)",
+    accentShadow: "rgba(16,185,129,0.35)",
+    glow: "rgba(16,185,129,0.18)",
+    gradient: "linear-gradient(135deg, #10b981 0%, #047857 100%)",
+    stripeGradient: "linear-gradient(90deg, #10b981, #6ee7b7)",
+    tags: ["Modern", "Set-based Selectors", "Rolling Updates"],
+    desc: "The improved version of ReplicationController. Supports both equality and set-based selectors. Used internally by Deployments for rolling updates and rollbacks.",
+    icon: <ReplicaSetIcon />,
+  },
+  "replica-controller": {
+    label: "ReplicationController",
+    subtitle: "v1 · ReplicationController",
+    accent: "#ef4444",
+    accentDim: "rgba(239,68,68,0.15)",
+    accentBorder: "rgba(239,68,68,0.3)",
+    accentShadow: "rgba(239,68,68,0.35)",
+    glow: "rgba(239,68,68,0.18)",
+    gradient: "linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)",
+    stripeGradient: "linear-gradient(90deg, #ef4444, #fca5a5)",
+    tags: ["Legacy", "Equality Selectors Only", "Deprecated"],
+    desc: "The older way of managing Pods — mostly deprecated and replaced by ReplicaSets. Does not support rolling updates or set-based selectors.",
+    icon: <ReplicaControllerIcon />,
+  },
+} as const;
+
+type ReplicasKey = keyof typeof replicasMeta;
+
 
 
 // ─────────────────────────────────────────────
@@ -1890,6 +1997,83 @@ export default function FullViewK8s() {
     );
   }
 
+  // Add after the Restart Policy views (around line 800+)
+
+  // ── VIEW: Replicas selection grid ────────────────────────────────────
+  if (activeView === "replicas") {
+    return pageWrap(
+      <>
+        {renderBackButton("Back to Kubernetes Menu", () => setActiveView(null))}
+        <p
+          style={{
+            fontFamily: "'Rajdhani', sans-serif",
+            fontWeight: 700,
+            fontSize: 32,
+            color: textTitle,
+            margin: "0 0 8px",
+          }}
+        >
+          Replicas Management
+        </p>
+        <p
+          style={{
+            fontFamily: "'Space Mono', monospace",
+            fontSize: 11,
+            color: textDesc,
+            margin: "0 0 32px",
+          }}
+        >
+          Select a replica controller pattern to explore
+        </p>
+        <TypeSelectionGrid
+          items={replicasMeta}
+          isDark={isDark}
+          textTitle={textTitle}
+          textDesc={textDesc}
+          badgeLabel="REPLICA TYPE"
+          onSelect={(key) => setActiveView(key)}
+        />
+      </>,
+    );
+  }
+
+  // ── VIEW: Individual Replica Deep Dives ─────────────────────────────
+  if (activeView === "replica-set") {
+    return (
+      <div style={{ minHeight: "100vh", backgroundColor: bg }}>
+        <style>{GLOBAL_STYLES}</style>
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to Replicas", () =>
+            setActiveView("replicas"),
+          )}
+        </div>
+        <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
+          <ReplicaSet />
+        </div>
+      </div>
+    );
+  }
+
+  if (activeView === "replica-controller") {
+    return (
+      <div style={{ minHeight: "100vh", backgroundColor: bg }}>
+        <style>{GLOBAL_STYLES}</style>
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to Replicas", () =>
+            setActiveView("replicas"),
+          )}
+        </div>
+        <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
+          <ReplicaController />
+        </div>
+      </div>
+    );
+  }
+
   // ── VIEW: Individual container deep-dives ─────────────────────────────────
   const containerViewKeys: ContainerKey[] = [
     "main-container",
@@ -2801,7 +2985,7 @@ export default function FullViewK8s() {
           →
         </div>
       </div>
-      
+
       {/* ── RESTART POLICY CARD ── */}
       <div
         className="k8s-card"
@@ -2889,7 +3073,8 @@ export default function FullViewK8s() {
           </div>
 
           <p className="k8s-card-desc" style={{ color: textDesc }}>
-            Determine when a container should be restarted by the Kubelet. Explore Always, OnFailure, and Never patterns.
+            Determine when a container should be restarted by the Kubelet.
+            Explore Always, OnFailure, and Never patterns.
           </p>
 
           <div
@@ -2920,13 +3105,151 @@ export default function FullViewK8s() {
         <div
           className="k8s-card-arrow"
           style={{
-            background: isDark ? "rgba(99,102,241,0.18)" : "rgba(99,102,241,0.1)",
+            background: isDark
+              ? "rgba(99,102,241,0.18)"
+              : "rgba(99,102,241,0.1)",
             color: "#6366f1",
           }}
         >
           →
         </div>
       </div>
-    </div>
+
+      {/* ── REPLICAS CARD ── */}
+      <div
+        className="k8s-card"
+        onClick={() => setActiveView("replicas")}
+        style={{
+          backgroundColor: isDark ? "rgba(15,23,42,0.9)" : "#ffffff",
+          border: `1px solid ${isDark ? "rgba(16,185,129,0.35)" : "rgba(16,185,129,0.28)"}`,
+          boxShadow: isDark
+            ? "0 4px 24px rgba(0,0,0,0.4)"
+            : "0 4px 24px rgba(16,185,129,0.1)",
+        }}
+      >
+        <div
+          className="k8s-stripe"
+          style={{ background: "linear-gradient(90deg, #10b981, #34d399)" }}
+        />
+        <div
+          className="k8s-card-glow"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(16,185,129,0.22) 0%, transparent 70%)",
+          }}
+        />
+        <svg className="k8s-card-bg-hex" viewBox="0 0 100 115" fill="none">
+          <polygon
+            points="50,5 93,28 93,87 50,110 7,87 7,28"
+            stroke="#10b981"
+            strokeWidth="4"
+            fill="none"
+          />
+          <polygon
+            points="50,18 83,35 83,80 50,97 17,80 17,35"
+            stroke="#10b981"
+            strokeWidth="2"
+            fill="none"
+          />
+        </svg>
+
+        <div className="k8s-card-inner">
+          <div
+            className="k8s-badge"
+            style={{
+              background: isDark
+                ? "rgba(16,185,129,0.13)"
+                : "rgba(16,185,129,0.08)",
+              color: "#10b981",
+              border: "1px solid rgba(16,185,129,0.3)",
+            }}
+          >
+            <K8sLogo size={13} color="#10b981" />
+            KUBERNETES WORKLOAD
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              marginBottom: 14,
+            }}
+          >
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 14,
+                flexShrink: 0,
+                background: "linear-gradient(135deg, #10b981 0%, #047857 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 4px 16px rgba(16,185,129,0.4)",
+              }}
+            >
+              <ReplicaSetIcon />
+            </div>
+            <div>
+              <p className="k8s-card-title" style={{ color: textTitle }}>
+                Replicas
+              </p>
+              <p className="k8s-card-desc" style={{ color: "#10b981" }}>
+                apps/v1 · ReplicaSet / v1 · ReplicationController
+              </p>
+            </div>
+          </div>
+
+          <p className="k8s-card-desc" style={{ color: textDesc }}>
+            Manage Pod replicas and ensure desired state. Compare modern
+            ReplicaSet with legacy ReplicationController.
+          </p>
+
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              marginTop: 16,
+              flexWrap: "wrap",
+            }}
+          >
+            {["ReplicaSet", "ReplicationController", "Pod Management"].map(
+              (tag) => (
+                <span
+                  key={tag}
+                  style={{
+                    fontFamily: "'Space Mono', monospace",
+                    fontSize: 9,
+                    padding: "3px 9px",
+                    borderRadius: 12,
+                    background: isDark
+                      ? "rgba(16,185,129,0.11)"
+                      : "rgba(16,185,129,0.07)",
+                    color: isDark ? "#6ee7b7" : "#10b981",
+                    border: "1px solid rgba(16,185,129,0.22)",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  {tag}
+                </span>
+              ),
+            )}
+          </div>
+        </div>
+
+        <div
+          className="k8s-card-arrow"
+          style={{
+            background: isDark
+              ? "rgba(16,185,129,0.18)"
+              : "rgba(16,185,129,0.1)",
+            color: "#10b981",
+          }}
+        >
+          →
+        </div>
+      </div>
+    </div>,
   );
 }
