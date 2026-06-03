@@ -6,32 +6,27 @@ import { useTheme } from "../../Themecontext";
 import PodYamlExample from "./pod";
 
 // containers
-
 import MainContainer from "./containers/maincontainer";
 import InitContainer from "./containers/initcontainer";
 import SidecarContainer from "./containers/sidecarcontainer";
 
 // pod-types
-
 import StaticPod from "./pods/staticpod";
 import Singlepod from "./pods/single_pod";
 import MultiplePod from "./pods/multiple_pod";
 
 // clusters
-
 import ClusterIP from "./eks_clusters/cluster-ip";
 import NodePort from "./eks_clusters/nodeport";
 import LoadBalancer from "./eks_clusters/load-balancer";
 import ExternalName from "./eks_clusters/external-name";
 
 // probes
-
 import StartupProbe from "./probes/startup-probe";
 import LivenessProbe from "./probes/liveness-probe";
 import ReadinessProbe from "./probes/readiness-probe";
 
 // pod-lifecycle
-
 import Running from "./pod-lifecycle/running";
 import Failed from "./pod-lifecycle/failed";
 import Pending from "./pod-lifecycle/pending";
@@ -39,8 +34,12 @@ import Success from "./pod-lifecycle/success";
 import Unknown from "./pod-lifecycle/unknown";
 
 // resources
-
 import ResourceComponent from "./resources/resources-oom-killed";
+
+// restart-policy
+import Always from "./restart-policy/always";
+import Never from "./restart-policy/never";
+import OnFailure from "./restart-policy/onfailure";
 
 export const k8sCommandCount = 4;
 
@@ -502,28 +501,93 @@ function LifecycleUnknownIcon() {
   );
 }
 
-  function Resource() {
-    return (
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-        <rect
-          x="5"
-          y="5"
-          width="14"
-          height="14"
-          rx="2"
-          stroke="white"
-          strokeWidth="1.5"
-          fill="rgba(255,255,255,0.15)"
-        />
-        <path
-          d="M8 5V3M12 5V3M16 5V3M8 21v-2M12 21v-2M16 21v-2M5 8H3M5 12H3M5 16H3M21 8h-2M21 12h-2M21 16h-2"
-          stroke="white"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-        />
-      </svg>
-    );
-  }
+function Resource() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+      <rect
+        x="5"
+        y="5"
+        width="14"
+        height="14"
+        rx="2"
+        stroke="white"
+        strokeWidth="1.5"
+        fill="rgba(255,255,255,0.15)"
+      />
+      <path
+        d="M8 5V3M12 5V3M16 5V3M8 21v-2M12 21v-2M16 21v-2M5 8H3M5 12H3M5 16H3M21 8h-2M21 12h-2M21 16h-2"
+        stroke="white"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+// ─────────────────────────────────────────────
+// Restart Policy Icons
+// ─────────────────────────────────────────────
+
+function RestartPolicyIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+      <path 
+        d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 14.6548 3.03608 17.0673 4.73979 18.8687" 
+        stroke="white" 
+        strokeWidth="1.8" 
+        strokeLinecap="round" 
+        strokeLinejoin="round" 
+      />
+      <path 
+        d="M2 19V14H7" 
+        stroke="white" 
+        strokeWidth="1.8" 
+        strokeLinecap="round" 
+        strokeLinejoin="round" 
+      />
+    </svg>
+  );
+}
+
+function AlwaysIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+      <path 
+        d="M17 12C17 14.7614 14.7614 17 12 17C9.23858 17 7 14.7614 7 12C7 9.23858 9.23858 7 12 7C14.7614 7 17 9.23858 17 12ZM17 12L21 8M17 12L21 16" 
+        stroke="white" 
+        strokeWidth="1.8" 
+        strokeLinecap="round" 
+        strokeLinejoin="round" 
+      />
+      <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="1.5" fill="rgba(255,255,255,0.1)" />
+    </svg>
+  );
+}
+
+function OnFailureIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+      <path d="M12 8V12" stroke="white" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="12" cy="16" r="1" fill="white" />
+      <path 
+        d="M20 12C20 16.4183 16.4183 20 12 20C7.58172 20 4 16.4183 4 12C4 7.58172 7.58172 4 12 4" 
+        stroke="white" 
+        strokeWidth="1.8" 
+        strokeLinecap="round" 
+        strokeDasharray="4 4"
+      />
+    </svg>
+  );
+}
+
+function NeverIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="9" stroke="white" strokeWidth="1.8" fill="rgba(255,255,255,0.1)" />
+      <path d="M8 8L16 16" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 
 // ─────────────────────────────────────────────
@@ -858,7 +922,55 @@ const oomKilledSubMeta = {
   },
 } as const;
 
-// type ResourceKey = keyof typeof resourceMeta;
+// ─────────────────────────────────────────────
+// Restart Policy meta config
+// ─────────────────────────────────────────────
+
+const restartPolicyMeta = {
+  "always": {
+    label: "Always",
+    subtitle: "v1 · spec.restartPolicy",
+    accent: "#3b82f6",
+    accentDim: "rgba(59,130,246,0.15)",
+    accentBorder: "rgba(59,130,246,0.3)",
+    accentShadow: "rgba(59,130,246,0.35)",
+    glow: "rgba(59,130,246,0.18)",
+    gradient: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+    stripeGradient: "linear-gradient(90deg, #3b82f6, #60a5fa)",
+    tags: ["Default", "Always Restart", "Services"],
+    desc: "The container will always be restarted regardless of why it exited. Ideal for long-running services like web servers and databases.",
+    icon: <AlwaysIcon />,
+  },
+  "on-failure": {
+    label: "OnFailure",
+    subtitle: "v1 · spec.restartPolicy",
+    accent: "#f59e0b",
+    accentDim: "rgba(245,158,11,0.15)",
+    accentBorder: "rgba(245,158,11,0.3)",
+    accentShadow: "rgba(245,158,11,0.35)",
+    glow: "rgba(245,158,11,0.18)",
+    gradient: "linear-gradient(135deg, #f59e0b 0%, #b45309 100%)",
+    stripeGradient: "linear-gradient(90deg, #f59e0b, #fcd34d)",
+    tags: ["Non-Zero Exit", "Jobs", "Retry"],
+    desc: "The container will only be restarted if it exits with a non-zero status. Commonly used for Kubernetes Jobs that need to complete successfully.",
+    icon: <OnFailureIcon />,
+  },
+  "never": {
+    label: "Never",
+    subtitle: "v1 · spec.restartPolicy",
+    accent: "#64748b",
+    accentDim: "rgba(100,116,139,0.15)",
+    accentBorder: "rgba(100,116,139,0.3)",
+    accentShadow: "rgba(100,116,139,0.35)",
+    glow: "rgba(100,116,139,0.18)",
+    gradient: "linear-gradient(135deg, #64748b 0%, #334155 100%)",
+    stripeGradient: "linear-gradient(90deg, #64748b, #94a3b8)",
+    tags: ["One-Shot", "No Retry", "Inspection"],
+    desc: "The container will not be restarted regardless of the exit status. Useful for one-off tasks where failures should be preserved for inspection.",
+    icon: <NeverIcon />,
+  },
+} as const;
+
 
 // ─────────────────────────────────────────────
 // Global styles
@@ -959,7 +1071,7 @@ const GLOBAL_STYLES = `
 `;
 
 // ─────────────────────────────────────────────
-// Reusable selection grid (used by both Pods and Containers)
+// Reusable selection grid
 // ─────────────────────────────────────────────
 
 function TypeSelectionGrid<T extends string>({
@@ -1630,60 +1742,153 @@ export default function FullViewK8s() {
   }
 
   // ── VIEW: Resources ────────────────────────────────────────────────────────
-if (activeView === "resources") {
-  return pageWrap(
-    <>
-      {renderBackButton("Back to Kubernetes Menu", () => setActiveView(null))}
-      <p
-        style={{
-          fontFamily: "'Rajdhani', sans-serif",
-          fontWeight: 700,
-          fontSize: 32,
-          color: textTitle,
-          margin: "0 0 8px",
-        }}
-      >
-        Resources
-      </p>
-      <p
-        style={{
-          fontFamily: "'Space Mono', monospace",
-          fontSize: 11,
-          color: textDesc,
-          margin: "0 0 32px",
-        }}
-      >
-        Select a resource scenario to explore
-      </p>
-      <TypeSelectionGrid
-        items={oomKilledSubMeta}
-        isDark={isDark}
-        textTitle={textTitle}
-        textDesc={textDesc}
-        badgeLabel="RESOURCE TYPE"
-        onSelect={(key) => setActiveView(key)}
-      />
-    </>,
-  );
-}
+  if (activeView === "resources") {
+    return pageWrap(
+      <>
+        {renderBackButton("Back to Kubernetes Menu", () => setActiveView(null))}
+        <p
+          style={{
+            fontFamily: "'Rajdhani', sans-serif",
+            fontWeight: 700,
+            fontSize: 32,
+            color: textTitle,
+            margin: "0 0 8px",
+          }}
+        >
+          Resources
+        </p>
+        <p
+          style={{
+            fontFamily: "'Space Mono', monospace",
+            fontSize: 11,
+            color: textDesc,
+            margin: "0 0 32px",
+          }}
+        >
+          Select a resource scenario to explore
+        </p>
+        <TypeSelectionGrid
+          items={oomKilledSubMeta}
+          isDark={isDark}
+          textTitle={textTitle}
+          textDesc={textDesc}
+          badgeLabel="RESOURCE TYPE"
+          onSelect={(key) => setActiveView(key)}
+        />
+      </>,
+    );
+  }
 
-if (activeView === "oom-killed") {
-  return (
-    <div style={{ minHeight: "100vh", backgroundColor: bg }}>
-      <style>{GLOBAL_STYLES}</style>
-      <div
-        style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
-      >
-        {renderBackButton("Back to Resources", () =>
-          setActiveView("resources"),
-        )}
+  if (activeView === "oom-killed") {
+    return (
+      <div style={{ minHeight: "100vh", backgroundColor: bg }}>
+        <style>{GLOBAL_STYLES}</style>
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to Resources", () =>
+            setActiveView("resources"),
+          )}
+        </div>
+        <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
+          <ResourceComponent />
+        </div>
       </div>
-      <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
-        <ResourceComponent />
+    );
+  }
+
+  // ── VIEW: Restart Policy selection grid ────────────────────────────────────
+  if (activeView === "restart-policy") {
+    return pageWrap(
+      <>
+        {renderBackButton("Back to Kubernetes Menu", () => setActiveView(null))}
+        <p
+          style={{
+            fontFamily: "'Rajdhani', sans-serif",
+            fontWeight: 700,
+            fontSize: 32,
+            color: textTitle,
+            margin: "0 0 8px",
+          }}
+        >
+          Restart Policies
+        </p>
+        <p
+          style={{
+            fontFamily: "'Space Mono', monospace",
+            fontSize: 11,
+            color: textDesc,
+            margin: "0 0 32px",
+          }}
+        >
+          Select a restart policy pattern to explore
+        </p>
+        <TypeSelectionGrid
+          items={restartPolicyMeta}
+          isDark={isDark}
+          textTitle={textTitle}
+          textDesc={textDesc}
+          badgeLabel="POLICY TYPE"
+          onSelect={(key) => setActiveView(key)}
+        />
+      </>,
+    );
+  }
+
+  // ── VIEW: Individual Restart Policy Deep Dives ─────────────────────────────
+  if (activeView === "always") {
+    return (
+      <div style={{ minHeight: "100vh", backgroundColor: bg }}>
+        <style>{GLOBAL_STYLES}</style>
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to Restart Policies", () =>
+            setActiveView("restart-policy"),
+          )}
+        </div>
+        <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
+          <Always />
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
+
+  if (activeView === "on-failure") {
+    return (
+      <div style={{ minHeight: "100vh", backgroundColor: bg }}>
+        <style>{GLOBAL_STYLES}</style>
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to Restart Policies", () =>
+            setActiveView("restart-policy"),
+          )}
+        </div>
+        <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
+          <OnFailure />
+        </div>
+      </div>
+    );
+  }
+
+  if (activeView === "never") {
+    return (
+      <div style={{ minHeight: "100vh", backgroundColor: bg }}>
+        <style>{GLOBAL_STYLES}</style>
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to Restart Policies", () =>
+            setActiveView("restart-policy"),
+          )}
+        </div>
+        <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
+          <Never />
+        </div>
+      </div>
+    );
+  }
 
   // ── VIEW: Individual container deep-dives ─────────────────────────────────
   const containerViewKeys: ContainerKey[] = [
@@ -2596,6 +2801,132 @@ if (activeView === "oom-killed") {
           →
         </div>
       </div>
-    </div>,
+      
+      {/* ── RESTART POLICY CARD ── */}
+      <div
+        className="k8s-card"
+        onClick={() => setActiveView("restart-policy")}
+        style={{
+          backgroundColor: isDark ? "rgba(15,23,42,0.9)" : "#ffffff",
+          border: `1px solid ${isDark ? "rgba(99,102,241,0.35)" : "rgba(99,102,241,0.28)"}`,
+          boxShadow: isDark
+            ? "0 4px 24px rgba(0,0,0,0.4)"
+            : "0 4px 24px rgba(99,102,241,0.1)",
+        }}
+      >
+        <div
+          className="k8s-stripe"
+          style={{ background: "linear-gradient(90deg, #4f46e5, #6366f1)" }}
+        />
+        <div
+          className="k8s-card-glow"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(99,102,241,0.22) 0%, transparent 70%)",
+          }}
+        />
+        <svg className="k8s-card-bg-hex" viewBox="0 0 100 115" fill="none">
+          <polygon
+            points="50,5 93,28 93,87 50,110 7,87 7,28"
+            stroke="#6366f1"
+            strokeWidth="4"
+            fill="none"
+          />
+          <polygon
+            points="50,18 83,35 83,80 50,97 17,80 17,35"
+            stroke="#6366f1"
+            strokeWidth="2"
+            fill="none"
+          />
+        </svg>
+
+        <div className="k8s-card-inner">
+          <div
+            className="k8s-badge"
+            style={{
+              background: isDark
+                ? "rgba(99,102,241,0.13)"
+                : "rgba(99,102,241,0.08)",
+              color: "#6366f1",
+              border: "1px solid rgba(99,102,241,0.3)",
+            }}
+          >
+            <K8sLogo size={13} color="#6366f1" />
+            KUBERNETES CONFIG
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              marginBottom: 14,
+            }}
+          >
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 14,
+                flexShrink: 0,
+                background: "linear-gradient(135deg, #6366f1 0%, #4338ca 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 4px 16px rgba(99,102,241,0.4)",
+              }}
+            >
+              <RestartPolicyIcon />
+            </div>
+            <div>
+              <p className="k8s-card-title" style={{ color: textTitle }}>
+                Restart Policy
+              </p>
+              <p className="k8s-card-desc" style={{ color: "#6366f1" }}>
+                v1 · spec.restartPolicy
+              </p>
+            </div>
+          </div>
+
+          <p className="k8s-card-desc" style={{ color: textDesc }}>
+            Determine when a container should be restarted by the Kubelet. Explore Always, OnFailure, and Never patterns.
+          </p>
+
+          <div
+            style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}
+          >
+            {["Always", "OnFailure", "Never"].map((tag) => (
+              <span
+                key={tag}
+                style={{
+                  fontFamily: "'Space Mono', monospace",
+                  fontSize: 9,
+                  padding: "3px 9px",
+                  borderRadius: 12,
+                  background: isDark
+                    ? "rgba(99,102,241,0.11)"
+                    : "rgba(99,102,241,0.07)",
+                  color: isDark ? "#818cf8" : "#6366f1",
+                  border: "1px solid rgba(99,102,241,0.22)",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div
+          className="k8s-card-arrow"
+          style={{
+            background: isDark ? "rgba(99,102,241,0.18)" : "rgba(99,102,241,0.1)",
+            color: "#6366f1",
+          }}
+        >
+          →
+        </div>
+      </div>
+    </div>
   );
 }
