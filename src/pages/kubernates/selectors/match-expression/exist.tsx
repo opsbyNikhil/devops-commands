@@ -1,37 +1,28 @@
-import { useState } from "react";
-import { useTheme } from "../../../Themecontext";
+// ExistsSelector.tsx
+import React, { useState } from "react";
+import { CopyOutlined, CheckOutlined } from "@ant-design/icons";
+import { useTheme } from "../../../../Themecontext"; 
 
-const yaml = `apiVersion: v1
-kind: Pod
-metadata:
-  name: pod-ex-1
-  labels:
-    env: EX-DEV
-spec:
-  restartPolicy: Always
-  containers:
-    - name: ex-cont-1
-      image: nginx
-      ports:
-        - containerPort: 80
-          protocol: TCP`;
-
-function YamlLine({ line, isDark }: { line: string; isDark: boolean }) {
-  const keyColor = isDark ? "#7dd3fc" : "#0369a1";
-  const valueColor = isDark ? "#86efac" : "#15803d";
-  const numberColor = isDark ? "#fbbf24" : "#b45309";
-  const stringColor = isDark ? "#f9a8d4" : "#be185d";
-  const commentColor = isDark ? "#6b7280" : "#4b5563";
-  const highlightColor = isDark ? "#34d399" : "#059669";
+// ----------------------------------------------
+// Syntax-highlighting component (reused)
+// ----------------------------------------------
+const YamlLine = ({ line, isDark }: { line: string; isDark: boolean }) => {
+  const colors = {
+    key: isDark ? "#7dd3fc" : "#0369a1",
+    value: isDark ? "#86efac" : "#15803d",
+    number: isDark ? "#fbbf24" : "#b45309",
+    string: isDark ? "#f9a8d4" : "#be185d",
+    comment: isDark ? "#6b7280" : "#4b5563",
+    highlight: isDark ? "#34d399" : "#059669",
+  };
 
   const renderLine = (text: string) => {
     const trimmed = text.trimStart();
     const indent = text.length - trimmed.length;
     const spaces = "\u00a0".repeat(indent);
 
-    if (trimmed.startsWith("#")) {
-      return <span style={{ color: commentColor }}>{text}</span>;
-    }
+    if (trimmed.startsWith("#"))
+      return <span style={{ color: colors.comment }}>{text}</span>;
 
     const colonIdx = trimmed.indexOf(":");
     if (colonIdx === -1) {
@@ -40,12 +31,12 @@ function YamlLine({ line, isDark }: { line: string; isDark: boolean }) {
         return (
           <>
             {spaces}
-            <span style={{ color: keyColor }}>- </span>
-            <span style={{ color: valueColor }}>{rest}</span>
+            <span style={{ color: colors.key }}>- </span>
+            <span style={{ color: colors.value }}>{rest}</span>
           </>
         );
       }
-      return <span style={{ color: valueColor }}>{text}</span>;
+      return <span style={{ color: colors.value }}>{text}</span>;
     }
 
     const key = trimmed.slice(0, colonIdx);
@@ -57,34 +48,37 @@ function YamlLine({ line, isDark }: { line: string; isDark: boolean }) {
         value === "" ? (
           ""
         ) : /^\d+$/.test(value) ? (
-          <span style={{ color: numberColor }}>{value}</span>
+          <span style={{ color: colors.number }}>{value}</span>
         ) : (
-          <span style={{ color: stringColor }}>{value}</span>
+          <span style={{ color: colors.string }}>{value}</span>
         );
       return (
         <>
           {spaces}
-          <span style={{ color: keyColor }}>- {realKey}</span>:
+          <span style={{ color: colors.key }}>- {realKey}</span>:
           {value !== "" && <> {coloredValue}</>}
         </>
       );
     }
 
+    const isOperator = key === "operator";
     const coloredValue =
       value === "" ? (
         ""
-      ) : key === "restartPolicy" ? (
-        <span style={{ color: highlightColor, fontWeight: 600 }}>{value}</span>
+      ) : isOperator ? (
+        <span style={{ color: colors.highlight, fontWeight: 600 }}>
+          {value}
+        </span>
       ) : /^\d+$/.test(value) ? (
-        <span style={{ color: numberColor }}>{value}</span>
+        <span style={{ color: colors.number }}>{value}</span>
       ) : (
-        <span style={{ color: stringColor }}>{value}</span>
+        <span style={{ color: colors.string }}>{value}</span>
       );
 
     return (
       <>
         {spaces}
-        <span style={{ color: keyColor }}>{key}</span>:
+        <span style={{ color: colors.key }}>{key}</span>:
         {value !== "" && <> {coloredValue}</>}
       </>
     );
@@ -95,38 +89,49 @@ function YamlLine({ line, isDark }: { line: string; isDark: boolean }) {
       style={{
         fontFamily: "'SF Mono', 'Menlo', 'JetBrains Mono', monospace",
         fontSize: "12px",
-        lineHeight: "1.65",
+        lineHeight: 1.65,
         whiteSpace: "pre",
-        fontFeatureSettings: "'calt' off",
       }}
     >
       {renderLine(line)}
     </div>
   );
-}
+};
 
-const scenarios = [
-  { exit: "Exit 0 (Success)", restarts: true },
-  { exit: "Exit 1 (Failure)", restarts: true },
-  { exit: "Exit 137 (OOM Kill)", restarts: true },
-  { exit: "Exit 143 (SIGTERM)", restarts: true },
-];
-
-export default function Always() {
-  const [copied, setCopied] = useState(false);
+// ----------------------------------------------
+// Main component – Exists operator
+// ----------------------------------------------
+const ExistsSelector = () => {
   const { isDark } = useTheme();
+  const [copied, setCopied] = useState(false);
+
+  // Exact YAML as you provided (values array included)
+  const yamlSnippet = `apiVersion: v1
+kind: Deployment
+metadata:
+  name: myapp
+spec:
+  minReadySeconds: 5
+  replicas: 5
+  selector:
+    matchExpressions:
+      - key: app
+        operator: Exists
+        values:
+          - zomato
+          - uber`;
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(yaml).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+    navigator.clipboard.writeText(yamlSnippet);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
+  // Theme colours – using purple for "Exists"
   const bgColor = isDark ? "#0f0f13" : "#f8fafc";
   const cardBg = isDark ? "#0a0a0f" : "#ffffff";
   const cardBorder = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
-  const headerBorder = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)";
+  const borderColor = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)";
   const textPrimary = isDark ? "#ffffff" : "#0f172a";
   const textSecondary = isDark ? "#8b8b9e" : "#475569";
   const textMuted = isDark ? "#6b7280" : "#64748b";
@@ -134,14 +139,38 @@ export default function Always() {
   const codeBorder = isDark ? "#1e1e28" : "#e2e8f0";
   const tagBg = isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)";
   const tagBorder = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
-  const accentGreen = isDark ? "#34d399" : "#059669";
-  const accentGreenLight = isDark
-    ? "rgba(52,211,153,0.08)"
-    : "rgba(5,150,105,0.06)";
-  const accentGreenBorder = isDark
-    ? "rgba(52,211,153,0.2)"
-    : "rgba(5,150,105,0.15)";
+  const accentPurple = isDark ? "#c084fc" : "#9333ea";
+  const accentPurpleLight = isDark
+    ? "rgba(192,132,252,0.08)"
+    : "rgba(147,51,234,0.06)";
+  const accentPurpleBorder = isDark
+    ? "rgba(192,132,252,0.2)"
+    : "rgba(147,51,234,0.15)";
   const accentBlue = isDark ? "#7dd3fc" : "#0284c7";
+
+  // Matrix: Exists checks only presence of the key (ignores values)
+  const scenarios = [
+    {
+      label: "app: zomato (key exists)",
+      selected: true,
+      note: "Key exists → selected",
+    },
+    {
+      label: "app: uber (key exists)",
+      selected: true,
+      note: "Key exists → selected",
+    },
+    {
+      label: "app: any-value (key exists)",
+      selected: true,
+      note: "Any value → selected",
+    },
+    {
+      label: "No app label (key missing)",
+      selected: false,
+      note: "Key missing → rejected",
+    },
+  ];
 
   return (
     <div
@@ -152,28 +181,22 @@ export default function Always() {
         alignItems: "center",
         justifyContent: "center",
         padding: "40px 24px",
-        fontFamily:
-          "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-        transition: "background 0.3s ease, color 0.3s ease",
+        fontFamily: "'Inter', system-ui, sans-serif",
+        transition: "all 0.2s ease",
       }}
     >
       <style>{`
-        @keyframes pulse {
-          0%, 100% { box-shadow: 0 0 0 0 ${accentGreen}66; }
-          50% { box-shadow: 0 0 0 8px ${accentGreen}00; }
-        }
         @keyframes fadePulse {
           0%, 100% { opacity: 0.3; }
           50% { opacity: 1; }
         }
-        .badge-pulse { animation: pulse 2s ease-in-out infinite; }
         .flow-arrow { animation: fadePulse 2s ease-in-out infinite; }
         .copy-btn:hover {
-          background: ${accentGreenLight} !important;
-          border-color: ${accentGreen} !important;
+          background: ${accentPurpleLight} !important;
+          border-color: ${accentPurple} !important;
         }
         .scenario-row:hover {
-          background: ${accentGreenLight} !important;
+          background: ${accentPurpleLight} !important;
         }
       `}</style>
 
@@ -185,101 +208,66 @@ export default function Always() {
           borderRadius: "32px",
           border: `1px solid ${cardBorder}`,
           overflow: "hidden",
-          transition: "background 0.3s ease, border-color 0.3s ease",
         }}
       >
+        {/* Header */}
         <div
           style={{
             padding: "32px 36px 24px 36px",
-            borderBottom: `1px solid ${headerBorder}`,
+            borderBottom: `1px solid ${borderColor}`,
           }}
         >
           <div
             style={{
-              display: "flex",
-              alignItems: "baseline",
-              justifyContent: "space-between",
-              flexWrap: "wrap",
-              gap: "16px",
+              fontSize: "12px",
+              fontWeight: 500,
+              letterSpacing: "0.6px",
+              color: accentPurple,
+              textTransform: "uppercase",
+              marginBottom: "10px",
             }}
           >
-            <div>
-              <div
-                style={{
-                  fontSize: "12px",
-                  fontWeight: 500,
-                  letterSpacing: "0.6px",
-                  color: accentGreen,
-                  textTransform: "uppercase",
-                  marginBottom: "10px",
-                }}
-              >
-                restartPolicy
-              </div>
-              <div
-                style={{
-                  fontSize: "38px",
-                  fontWeight: 600,
-                  color: textPrimary,
-                  letterSpacing: "-0.02em",
-                  fontFamily: "'Inter', -apple-system, sans-serif",
-                }}
-              >
-                Always
-              </div>
-              <div
-                style={{
-                  fontSize: "14px",
-                  color: textSecondary,
-                  marginTop: "10px",
-                  maxWidth: "480px",
-                  lineHeight: 1.5,
-                }}
-              >
-                Container restarts{" "}
-                <strong style={{ color: accentGreen, fontWeight: 500 }}>
-                  unconditionally
-                </strong>{" "}
-                whenever it stops — regardless of exit status.
-              </div>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                gap: "8px",
-                alignItems: "center",
-                background: accentGreenLight,
-                padding: "6px 16px",
-                borderRadius: "40px",
-                border: `1px solid ${accentGreenBorder}`,
-              }}
-            >
-              <span style={{ fontSize: "10px", color: accentGreen }}>●</span>
-              <span
-                style={{
-                  fontSize: "12px",
-                  color: textSecondary,
-                  fontWeight: 500,
-                  letterSpacing: "0.3px",
-                }}
-              >
-                ALWAYS ON
-              </span>
-            </div>
+            Set‑based Selector (Presence)
+          </div>
+          <div
+            style={{
+              fontSize: "38px",
+              fontWeight: 600,
+              color: textPrimary,
+              letterSpacing: "-0.02em",
+            }}
+          >
+            Exists Operator
+          </div>
+          <div
+            style={{
+              fontSize: "14px",
+              color: textSecondary,
+              marginTop: "10px",
+              maxWidth: "480px",
+              lineHeight: 1.5,
+            }}
+          >
+            Selects resources that{" "}
+            <strong style={{ color: accentPurple }}>have the label key</strong>{" "}
+            (regardless of value). In standard Kubernetes, the{" "}
+            <code>values</code> array is ignored.
           </div>
         </div>
 
+        {/* Two‑column layout */}
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
-            gap: "0",
+            gap: 0,
             minHeight: "520px",
           }}
         >
+          {/* LEFT: description + YAML */}
           <div
             style={{
-              borderRight: `1px solid ${headerBorder}`,
+              borderRight: `1px solid ${borderColor}`,
               padding: "28px 32px",
               display: "flex",
               flexDirection: "column",
@@ -288,13 +276,7 @@ export default function Always() {
           >
             <div>
               <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: "12px",
-                  alignItems: "center",
-                  marginBottom: "18px",
-                }}
+                style={{ display: "flex", gap: "12px", marginBottom: "18px" }}
               >
                 <span
                   style={{
@@ -306,25 +288,25 @@ export default function Always() {
                     fontWeight: 500,
                     padding: "4px 12px",
                     borderRadius: "6px",
-                    fontFamily: "'SF Mono', monospace",
+                    fontFamily: "monospace",
                   }}
                 >
-                  v1
+                  matchExpressions
                 </span>
                 <span
                   style={{
                     background: isDark
-                      ? "rgba(52,211,153,0.12)"
-                      : "rgba(5,150,105,0.06)",
-                    color: accentGreen,
+                      ? "rgba(192,132,252,0.12)"
+                      : "rgba(147,51,234,0.06)",
+                    color: accentPurple,
                     fontSize: "11px",
                     fontWeight: 500,
                     padding: "4px 12px",
                     borderRadius: "6px",
-                    fontFamily: "'SF Mono', monospace",
+                    fontFamily: "monospace",
                   }}
                 >
-                  spec/restartPolicy
+                  operator: Exists
                 </span>
               </div>
               <p
@@ -332,54 +314,48 @@ export default function Always() {
                   fontSize: "14px",
                   lineHeight: 1.6,
                   color: textSecondary,
-                  marginBottom: "20px",
                 }}
               >
-                Defines pod restart behavior across all containers.{" "}
-                <strong style={{ fontWeight: 500 }}>Always</strong> ensures
-                containers are re-created after any termination.
+                The <code>Exists</code> operator matches if the label key is
+                present – <strong>any value</strong> works. The{" "}
+                <code>values</code> field is typically omitted, but even if
+                provided, it has no effect.
               </p>
-
               <div
                 style={{
                   display: "flex",
-                  flexWrap: "wrap",
                   gap: "10px",
-                  marginTop: "8px",
+                  marginTop: "16px",
+                  flexWrap: "wrap",
                 }}
               >
-                {[
-                  { label: "Unconditional", color: accentGreen },
-                  {
-                    label: "Long-running",
-                    color: isDark ? "#fbbf24" : "#d97706",
-                  },
-                  { label: "Daemon friendly", color: accentBlue },
-                ].map((tag) => (
-                  <span
-                    key={tag.label}
-                    style={{
-                      background: tagBg,
-                      border: `1px solid ${tagBorder}`,
-                      borderRadius: "24px",
-                      padding: "4px 14px",
-                      fontSize: "11px",
-                      fontWeight: 450,
-                      color: tag.color,
-                    }}
-                  >
-                    {tag.label}
-                  </span>
-                ))}
+                {["Presence check", "Key-based", "Value‑agnostic"].map(
+                  (tag) => (
+                    <span
+                      key={tag}
+                      style={{
+                        background: tagBg,
+                        border: `1px solid ${tagBorder}`,
+                        borderRadius: "24px",
+                        padding: "4px 14px",
+                        fontSize: "11px",
+                        color: accentBlue,
+                      }}
+                    >
+                      {tag}
+                    </span>
+                  ),
+                )}
               </div>
             </div>
 
+            {/* YAML block */}
             <div>
               <div
                 style={{
                   display: "flex",
-                  alignItems: "center",
                   justifyContent: "space-between",
+                  alignItems: "center",
                   marginBottom: "14px",
                 }}
               >
@@ -388,11 +364,10 @@ export default function Always() {
                     fontSize: "11px",
                     fontWeight: 500,
                     color: textMuted,
-                    letterSpacing: "0.5px",
                     textTransform: "uppercase",
                   }}
                 >
-                  Example — always.yaml
+                  Example — exists.yaml
                 </span>
                 <button
                   className="copy-btn"
@@ -401,16 +376,18 @@ export default function Always() {
                     background: "transparent",
                     border: `1px solid ${isDark ? "#2a2a35" : "#e2e8f0"}`,
                     borderRadius: "8px",
-                    color: copied ? accentGreen : textMuted,
+                    color: copied ? accentPurple : textMuted,
                     fontSize: "11px",
                     padding: "5px 14px",
                     cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
                     transition: "all 0.2s",
-                    fontFamily: "'Inter', sans-serif",
-                    fontWeight: 450,
                   }}
                 >
-                  {copied ? "✓ Copied" : "Copy"}
+                  {copied ? <CheckOutlined /> : <CopyOutlined />}
+                  {copied ? "Copied" : "Copy"}
                 </button>
               </div>
               <div
@@ -422,17 +399,18 @@ export default function Always() {
                 }}
               >
                 <div style={{ padding: "20px 24px" }}>
-                  {yaml.split("\n").map((line, i) => (
+                  {yamlSnippet.split("\n").map((line, i) => (
                     <YamlLine key={i} line={line} isDark={isDark} />
                   ))}
                 </div>
               </div>
             </div>
 
+            {/* Quick kubectl command */}
             <div
               style={{
-                background: accentGreenLight,
-                border: `1px solid ${accentGreenBorder}`,
+                background: accentPurpleLight,
+                border: `1px solid ${accentPurpleBorder}`,
                 borderRadius: "14px",
                 padding: "12px 16px",
                 display: "flex",
@@ -440,21 +418,20 @@ export default function Always() {
                 gap: "12px",
               }}
             >
-              <span style={{ fontSize: "15px" }}>💰</span>
+              <span>⚡</span>
               <code
                 style={{
                   fontSize: "12px",
-                  color: accentGreen,
-                  background: "transparent",
-                  fontFamily: "'SF Mono', monospace",
-                  fontWeight: 450,
+                  color: accentPurple,
+                  fontFamily: "monospace",
                 }}
               >
-                kubectl apply -f always.yaml
+                kubectl get pods -l app
               </code>
             </div>
           </div>
 
+          {/* RIGHT: flow diagram + matrix + best for */}
           <div
             style={{
               padding: "28px 32px",
@@ -463,18 +440,18 @@ export default function Always() {
               gap: "32px",
             }}
           >
+            {/* Selection flow */}
             <div>
               <div
                 style={{
                   fontSize: "11px",
                   fontWeight: 500,
                   color: textMuted,
-                  letterSpacing: "0.5px",
                   textTransform: "uppercase",
                   marginBottom: "18px",
                 }}
               >
-                Behavior
+                Selection flow
               </div>
               <div
                 style={{
@@ -494,17 +471,20 @@ export default function Always() {
                   }}
                 >
                   {[
-                    "Container Running",
-                    "Container Stops",
-                    "Restart Always",
+                    { title: "Pod Labels", icon: "🏷️" },
+                    { title: "Check Exists", icon: "🔍" },
+                    { title: "Key present?", icon: "✅" },
                   ].map((step, idx) => (
-                    <div key={step} style={{ flex: 1, textAlign: "center" }}>
+                    <div
+                      key={step.title}
+                      style={{ flex: 1, textAlign: "center" }}
+                    >
                       <div
                         style={{
-                          background: idx === 2 ? accentGreenLight : tagBg,
+                          background: idx === 2 ? accentPurpleLight : tagBg,
                           border:
                             idx === 2
-                              ? `1px solid ${accentGreenBorder}`
+                              ? `1px solid ${accentPurpleBorder}`
                               : `1px solid ${tagBorder}`,
                           borderRadius: "16px",
                           padding: "14px 8px",
@@ -517,16 +497,16 @@ export default function Always() {
                             opacity: idx === 2 ? 1 : 0.6,
                           }}
                         >
-                          {idx === 0 ? "🟢" : idx === 1 ? "⏹️" : "🔄"}
+                          {step.icon}
                         </div>
                         <div
                           style={{
                             fontSize: "12px",
                             fontWeight: 450,
-                            color: idx === 2 ? accentGreen : textSecondary,
+                            color: idx === 2 ? accentPurple : textSecondary,
                           }}
                         >
-                          {step}
+                          {step.title}
                         </div>
                       </div>
                       {idx < 2 && (
@@ -534,7 +514,7 @@ export default function Always() {
                           className="flow-arrow"
                           style={{
                             fontSize: "20px",
-                            color: accentGreen,
+                            color: accentPurple,
                             margin: "10px 0",
                           }}
                         >
@@ -550,28 +530,28 @@ export default function Always() {
                     textAlign: "center",
                     fontSize: "12px",
                     color: textSecondary,
-                    borderTop: `1px solid ${headerBorder}`,
+                    borderTop: `1px solid ${borderColor}`,
                     paddingTop: "16px",
                   }}
                 >
-                  <span style={{ color: accentGreen }}>✓</span> Restart
-                  triggered on Exit 0, Exit 1, OOM Kill, SIGTERM
+                  <span style={{ color: accentPurple }}>✓</span> Any pod with
+                  the label <code>app</code> (any value) is selected
                 </div>
               </div>
             </div>
 
+            {/* Selection matrix */}
             <div>
               <div
                 style={{
                   fontSize: "11px",
                   fontWeight: 500,
                   color: textMuted,
-                  letterSpacing: "0.5px",
                   textTransform: "uppercase",
                   marginBottom: "14px",
                 }}
               >
-                Exit Code Matrix
+                Selection matrix
               </div>
               <div
                 style={{
@@ -592,24 +572,26 @@ export default function Always() {
                       padding: "12px 20px",
                       borderBottom:
                         i !== scenarios.length - 1
-                          ? `1px solid ${headerBorder}`
+                          ? `1px solid ${borderColor}`
                           : "none",
                       transition: "background 0.2s",
                     }}
                   >
                     <span
                       style={{
-                        fontFamily: "'SF Mono', monospace",
+                        fontFamily: "monospace",
                         fontSize: "12px",
                         color: textPrimary,
                       }}
                     >
-                      {s.exit}
+                      {s.label}
                     </span>
                     <span
                       style={{
-                        background: accentGreenLight,
-                        color: accentGreen,
+                        background: s.selected
+                          ? accentPurpleLight
+                          : "transparent",
+                        color: s.selected ? accentPurple : textMuted,
                         fontSize: "11px",
                         fontWeight: 500,
                         padding: "4px 14px",
@@ -619,39 +601,37 @@ export default function Always() {
                         gap: "6px",
                       }}
                     >
-                      <span>↻</span> RESTART
+                      {s.selected ? "✓ SELECTED" : "✗ REJECTED"}
+                      {s.note && (
+                        <span style={{ opacity: 0.6, fontWeight: 400 }}>
+                          ({s.note})
+                        </span>
+                      )}
                     </span>
                   </div>
                 ))}
               </div>
             </div>
 
+            {/* Best for */}
             <div>
               <div
                 style={{
                   fontSize: "11px",
                   fontWeight: 500,
                   color: textMuted,
-                  letterSpacing: "0.5px",
                   textTransform: "uppercase",
                   marginBottom: "14px",
                 }}
               >
-                Best For
+                Best for
               </div>
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: "8px",
-                }}
-              >
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                 {[
-                  "nginx",
-                  "API Gateway",
-                  "Redis",
-                  "Background Worker",
-                  "Web Server",
+                  "Feature detection",
+                  "Optional label presence",
+                  "Gradual rollouts",
+                  "Annotation checks",
                 ].map((item) => (
                   <span
                     key={item}
@@ -664,7 +644,6 @@ export default function Always() {
                       padding: "5px 16px",
                       fontSize: "12px",
                       color: accentBlue,
-                      fontWeight: 450,
                     }}
                   >
                     {item}
@@ -677,4 +656,6 @@ export default function Always() {
       </div>
     </div>
   );
-}
+};
+
+export default ExistsSelector;

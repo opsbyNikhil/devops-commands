@@ -41,10 +41,19 @@ import Always from "./restart-policy/always";
 import Never from "./restart-policy/never";
 import OnFailure from "./restart-policy/onfailure";
 
-
 // Replicas
 import ReplicaSet from "./replicas/replica-set";
 import ReplicaController from "./replicas/replica-controller";
+
+// Match labels (FIXED IMPORTS)
+import EqualityBasedDeepDive from "./selectors/match-labels/equality-based";
+import NotEqualDeepDive from "./selectors/match-labels/not-equality-based";
+
+// Match Expression (FIXED IMPORTS to match JSX and avoid SVG collisions)
+import InOperatorDeepDive from "./selectors/match-expression/In";
+import NotInOperatorDeepDive from "./selectors/match-expression/notin";
+import ExistsDeepDive from "./selectors/match-expression/exist";
+import DoesNotExistDeepDive from "./selectors/match-expression/doesnotexist";
 
 export const k8sCommandCount = 4;
 
@@ -356,8 +365,22 @@ function ProbePulseIcon() {
 function ProbeHealthIcon() {
   return (
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-      <rect x="3" y="3" width="18" height="18" rx="4" stroke="white" strokeWidth="1.5" fill="rgba(255,255,255,0.15)"/>
-      <path d="M12 8v8M8 12h8" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+      <rect
+        x="3"
+        y="3"
+        width="18"
+        height="18"
+        rx="4"
+        stroke="white"
+        strokeWidth="1.5"
+        fill="rgba(255,255,255,0.15)"
+      />
+      <path
+        d="M12 8v8M8 12h8"
+        stroke="white"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -536,19 +559,19 @@ function Resource() {
 function RestartPolicyIcon() {
   return (
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-      <path 
-        d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 14.6548 3.03608 17.0673 4.73979 18.8687" 
-        stroke="white" 
-        strokeWidth="1.8" 
-        strokeLinecap="round" 
-        strokeLinejoin="round" 
+      <path
+        d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 14.6548 3.03608 17.0673 4.73979 18.8687"
+        stroke="white"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
-      <path 
-        d="M2 19V14H7" 
-        stroke="white" 
-        strokeWidth="1.8" 
-        strokeLinecap="round" 
-        strokeLinejoin="round" 
+      <path
+        d="M2 19V14H7"
+        stroke="white"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );
@@ -557,14 +580,21 @@ function RestartPolicyIcon() {
 function AlwaysIcon() {
   return (
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-      <path 
-        d="M17 12C17 14.7614 14.7614 17 12 17C9.23858 17 7 14.7614 7 12C7 9.23858 9.23858 7 12 7C14.7614 7 17 9.23858 17 12ZM17 12L21 8M17 12L21 16" 
-        stroke="white" 
-        strokeWidth="1.8" 
-        strokeLinecap="round" 
-        strokeLinejoin="round" 
+      <path
+        d="M17 12C17 14.7614 14.7614 17 12 17C9.23858 17 7 14.7614 7 12C7 9.23858 9.23858 7 12 7C14.7614 7 17 9.23858 17 12ZM17 12L21 8M17 12L21 16"
+        stroke="white"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
-      <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="1.5" fill="rgba(255,255,255,0.1)" />
+      <circle
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="white"
+        strokeWidth="1.5"
+        fill="rgba(255,255,255,0.1)"
+      />
     </svg>
   );
 }
@@ -574,11 +604,11 @@ function OnFailureIcon() {
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
       <path d="M12 8V12" stroke="white" strokeWidth="2" strokeLinecap="round" />
       <circle cx="12" cy="16" r="1" fill="white" />
-      <path 
-        d="M20 12C20 16.4183 16.4183 20 12 20C7.58172 20 4 16.4183 4 12C4 7.58172 7.58172 4 12 4" 
-        stroke="white" 
-        strokeWidth="1.8" 
-        strokeLinecap="round" 
+      <path
+        d="M20 12C20 16.4183 16.4183 20 12 20C7.58172 20 4 16.4183 4 12C4 7.58172 7.58172 4 12 4"
+        stroke="white"
+        strokeWidth="1.8"
+        strokeLinecap="round"
         strokeDasharray="4 4"
       />
     </svg>
@@ -588,8 +618,20 @@ function OnFailureIcon() {
 function NeverIcon() {
   return (
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="9" stroke="white" strokeWidth="1.8" fill="rgba(255,255,255,0.1)" />
-      <path d="M8 8L16 16" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+      <circle
+        cx="12"
+        cy="12"
+        r="9"
+        stroke="white"
+        strokeWidth="1.8"
+        fill="rgba(255,255,255,0.1)"
+      />
+      <path
+        d="M8 8L16 16"
+        stroke="white"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -658,6 +700,238 @@ function ReplicaControllerIcon() {
   );
 }
 
+function SelectorIcon() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M3 5h18M6 10h12M10 15h4"
+        stroke="white"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <circle
+        cx="19"
+        cy="15"
+        r="3"
+        stroke="white"
+        strokeWidth="1.5"
+        fill="rgba(255,255,255,0.15)"
+      />
+      <path
+        d="M19 14v2M18 15h2"
+        stroke="white"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+// ─────────────────────────────────────────────
+// Match labels & match Expression
+// ─────────────────────────────────────────────
+
+function MatchLabelsIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M4 7h10l3 5-3 5H4V7Z"
+        stroke="white"
+        strokeWidth="1.5"
+        fill="rgba(255,255,255,0.15)"
+        strokeLinejoin="round"
+      />
+      <circle cx="7" cy="12" r="1.5" fill="white" opacity="0.9" />
+      <path
+        d="M10 9.5h4M10 12h5M10 14.5h3"
+        stroke="white"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function MatchExpressionsIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+      <rect
+        x="2"
+        y="6"
+        width="20"
+        height="12"
+        rx="3"
+        stroke="white"
+        strokeWidth="1.5"
+        fill="rgba(255,255,255,0.1)"
+      />
+      <path
+        d="M7 12h2M11 9l-2 3 2 3M13 9l2 3-2 3M17 12h-2"
+        stroke="white"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function EqualityIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+      <rect
+        x="3"
+        y="3"
+        width="18"
+        height="18"
+        rx="4"
+        stroke="white"
+        strokeWidth="1.5"
+        fill="rgba(255,255,255,0.1)"
+      />
+      <path
+        d="M7 10h10M7 14h10"
+        stroke="white"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function NotEqualIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+      <rect
+        x="3"
+        y="3"
+        width="18"
+        height="18"
+        rx="4"
+        stroke="white"
+        strokeWidth="1.5"
+        fill="rgba(255,255,255,0.1)"
+      />
+      <path
+        d="M7 10h10M7 14h10M15 7l-6 10"
+        stroke="white"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function InOperatorIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+      <circle
+        cx="12"
+        cy="12"
+        r="9"
+        stroke="white"
+        strokeWidth="1.5"
+        fill="rgba(255,255,255,0.08)"
+      />
+      <circle
+        cx="12"
+        cy="12"
+        r="5"
+        stroke="white"
+        strokeWidth="1.3"
+        fill="rgba(255,255,255,0.12)"
+      />
+      <circle cx="12" cy="12" r="2" fill="white" opacity="0.9" />
+      <path
+        d="M12 3v3M12 18v3M3 12h3M18 12h3"
+        stroke="white"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function NotInIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+      <circle
+        cx="12"
+        cy="12"
+        r="9"
+        stroke="white"
+        strokeWidth="1.5"
+        fill="rgba(255,255,255,0.08)"
+        strokeDasharray="3 2"
+      />
+      <circle
+        cx="12"
+        cy="12"
+        r="5"
+        stroke="white"
+        strokeWidth="1.3"
+        fill="rgba(255,255,255,0.12)"
+      />
+      <path
+        d="M9 9l6 6M15 9l-6 6"
+        stroke="white"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function ExistsIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+      <circle
+        cx="12"
+        cy="12"
+        r="9"
+        stroke="white"
+        strokeWidth="1.5"
+        fill="rgba(255,255,255,0.1)"
+      />
+      <path
+        d="M8 12l3 3 5-5"
+        stroke="white"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function DoesNotExistIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+      <circle
+        cx="12"
+        cy="12"
+        r="9"
+        stroke="white"
+        strokeWidth="1.5"
+        fill="rgba(255,255,255,0.1)"
+        strokeDasharray="3 2"
+      />
+      <path
+        d="M9 9l6 6M15 9l-6 6"
+        stroke="white"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M12 3v3M12 18v3"
+        stroke="white"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        opacity="0.5"
+      />
+    </svg>
+  );
+}
 
 // ─────────────────────────────────────────────
 // Pod type meta config
@@ -800,7 +1074,6 @@ const podLifecycleMeta = {
 } as const;
 
 type PodLifecycleKey = keyof typeof podLifecycleMeta;
-
 type PodKey = keyof typeof podMeta;
 
 // ─────────────────────────────────────────────
@@ -996,7 +1269,7 @@ const oomKilledSubMeta = {
 // ─────────────────────────────────────────────
 
 const restartPolicyMeta = {
-  "always": {
+  always: {
     label: "Always",
     subtitle: "v1 · spec.restartPolicy",
     accent: "#3b82f6",
@@ -1024,7 +1297,7 @@ const restartPolicyMeta = {
     desc: "The container will only be restarted if it exits with a non-zero status. Commonly used for Kubernetes Jobs that need to complete successfully.",
     icon: <OnFailureIcon />,
   },
-  "never": {
+  never: {
     label: "Never",
     subtitle: "v1 · spec.restartPolicy",
     accent: "#64748b",
@@ -1077,7 +1350,136 @@ const replicasMeta = {
 
 type ReplicasKey = keyof typeof replicasMeta;
 
+// ─────────────────────────────────────────────
+// Selectors meta configs
+// ─────────────────────────────────────────────
 
+const selectorsMeta = {
+  "match-labels": {
+    label: "matchLabels",
+    subtitle: "v1 · selector/matchLabels",
+    accent: "#0ea5e9",
+    accentDim: "rgba(14,165,233,0.15)",
+    accentBorder: "rgba(14,165,233,0.3)",
+    accentShadow: "rgba(14,165,233,0.35)",
+    glow: "rgba(14,165,233,0.2)",
+    gradient: "linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%)",
+    stripeGradient: "linear-gradient(90deg, #0ea5e9, #38bdf8)",
+    tags: ["Key=Value", "Equality", "Simple"],
+    desc: "Exact key-value pair matching. Every label listed must be present and equal on the target resource.",
+    icon: <MatchLabelsIcon />,
+  },
+  "match-expressions": {
+    label: "matchExpressions",
+    subtitle: "v1 · selector/matchExpressions",
+    accent: "#d946ef",
+    accentDim: "rgba(217,70,239,0.15)",
+    accentBorder: "rgba(217,70,239,0.3)",
+    accentShadow: "rgba(217,70,239,0.35)",
+    glow: "rgba(217,70,239,0.2)",
+    gradient: "linear-gradient(135deg, #d946ef 0%, #a21caf 100%)",
+    stripeGradient: "linear-gradient(90deg, #d946ef, #e879f9)",
+    tags: ["Set-based", "Operators", "Expressive"],
+    desc: "Powerful set-based selectors using operators like In, NotIn, Exists and DoesNotExist for flexible label matching.",
+    icon: <MatchExpressionsIcon />,
+  },
+} as const;
+
+type SelectorsKey = keyof typeof selectorsMeta;
+
+const matchLabelsMeta = {
+  "equality-based": {
+    label: "Equality-based",
+    subtitle: "selector · key = value",
+    accent: "#0ea5e9",
+    accentDim: "rgba(14,165,233,0.15)",
+    accentBorder: "rgba(14,165,233,0.3)",
+    accentShadow: "rgba(14,165,233,0.35)",
+    glow: "rgba(14,165,233,0.2)",
+    gradient: "linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%)",
+    stripeGradient: "linear-gradient(90deg, #0ea5e9, #38bdf8)",
+    tags: ["=", "==", "Exact Match"],
+    desc: "Selects resources where a label key exactly equals a specified value. Both = and == are equivalent in Kubernetes selectors.",
+    icon: <EqualityIcon />,
+  },
+  "not-equal": {
+    label: "Not-Equal (Inequality)",
+    subtitle: "selector · key != value",
+    accent: "#f43f5e",
+    accentDim: "rgba(244,63,94,0.15)",
+    accentBorder: "rgba(244,63,94,0.3)",
+    accentShadow: "rgba(244,63,94,0.35)",
+    glow: "rgba(244,63,94,0.2)",
+    gradient: "linear-gradient(135deg, #f43f5e 0%, #be123c 100%)",
+    stripeGradient: "linear-gradient(90deg, #f43f5e, #fda4af)",
+    tags: ["!=", "Exclude", "Inequality"],
+    desc: "Selects resources where a label key does NOT equal a value, or the key is entirely absent from the resource.",
+    icon: <NotEqualIcon />,
+  },
+} as const;
+
+type MatchLabelsKey = keyof typeof matchLabelsMeta;
+
+const matchExpressionsMeta = {
+  "in-operator": {
+    label: "In Operator",
+    subtitle: "matchExpressions · operator: In",
+    accent: "#8b5cf6",
+    accentDim: "rgba(139,92,246,0.15)",
+    accentBorder: "rgba(139,92,246,0.3)",
+    accentShadow: "rgba(139,92,246,0.35)",
+    glow: "rgba(139,92,246,0.2)",
+    gradient: "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)",
+    stripeGradient: "linear-gradient(90deg, #8b5cf6, #c4b5fd)",
+    tags: ["In", "Set Member", "Whitelist"],
+    desc: "Selects resources where the label key's value is one of the specified set of values. Values array must be non-empty.",
+    icon: <InOperatorIcon />,
+  },
+  "notin-operator": {
+    label: "NotIn Operator",
+    subtitle: "matchExpressions · operator: NotIn",
+    accent: "#ec4899",
+    accentDim: "rgba(236,72,153,0.15)",
+    accentBorder: "rgba(236,72,153,0.3)",
+    accentShadow: "rgba(236,72,153,0.35)",
+    glow: "rgba(236,72,153,0.2)",
+    gradient: "linear-gradient(135deg, #ec4899 0%, #be185d 100%)",
+    stripeGradient: "linear-gradient(90deg, #ec4899, #f9a8d4)",
+    tags: ["NotIn", "Exclude Set", "Blacklist"],
+    desc: "Selects resources where the label key's value is NOT in the specified set, or the key does not exist on the resource.",
+    icon: <NotInIcon />,
+  },
+  "exists-operator": {
+    label: "Exists",
+    subtitle: "matchExpressions · operator: Exists",
+    accent: "#22c55e",
+    accentDim: "rgba(34,197,94,0.15)",
+    accentBorder: "rgba(34,197,94,0.3)",
+    accentShadow: "rgba(34,197,94,0.35)",
+    glow: "rgba(34,197,94,0.2)",
+    gradient: "linear-gradient(135deg, #22c55e 0%, #15803d 100%)",
+    stripeGradient: "linear-gradient(90deg, #22c55e, #86efac)",
+    tags: ["Key Presence", "No Value", "Wildcard"],
+    desc: "Selects resources that have a specific label key, regardless of its value. The values array must be empty when using Exists.",
+    icon: <ExistsIcon />,
+  },
+  "does-not-exist": {
+    label: "DoesNotExist",
+    subtitle: "matchExpressions · operator: DoesNotExist",
+    accent: "#64748b",
+    accentDim: "rgba(100,116,139,0.15)",
+    accentBorder: "rgba(100,116,139,0.3)",
+    accentShadow: "rgba(100,116,139,0.35)",
+    glow: "rgba(100,116,139,0.2)",
+    gradient: "linear-gradient(135deg, #64748b 0%, #334155 100%)",
+    stripeGradient: "linear-gradient(90deg, #64748b, #94a3b8)",
+    tags: ["Key Absent", "No Label", "Exclusion"],
+    desc: "Selects resources that do NOT have a specific label key at all. The values array must also be empty when using DoesNotExist.",
+    icon: <DoesNotExistIcon />,
+  },
+} as const;
+
+type MatchExpressionsKey = keyof typeof matchExpressionsMeta;
 
 // ─────────────────────────────────────────────
 // Global styles
@@ -1997,8 +2399,6 @@ export default function FullViewK8s() {
     );
   }
 
-  // Add after the Restart Policy views (around line 800+)
-
   // ── VIEW: Replicas selection grid ────────────────────────────────────
   if (activeView === "replicas") {
     return pageWrap(
@@ -2069,6 +2469,234 @@ export default function FullViewK8s() {
         </div>
         <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
           <ReplicaController />
+        </div>
+      </div>
+    );
+  }
+
+  // ── VIEW: Selectors selection grid ────────────────────────────────────────
+  if (activeView === "selectors") {
+    return pageWrap(
+      <>
+        {renderBackButton("Back to Kubernetes Menu", () => setActiveView(null))}
+        <p
+          style={{
+            fontFamily: "'Rajdhani', sans-serif",
+            fontWeight: 700,
+            fontSize: 32,
+            color: textTitle,
+            margin: "0 0 8px",
+          }}
+        >
+          Label Selectors
+        </p>
+        <p
+          style={{
+            fontFamily: "'Space Mono', monospace",
+            fontSize: 11,
+            color: textDesc,
+            margin: "0 0 32px",
+          }}
+        >
+          Select a selector type to explore
+        </p>
+        <TypeSelectionGrid
+          items={selectorsMeta}
+          isDark={isDark}
+          textTitle={textTitle}
+          textDesc={textDesc}
+          badgeLabel="SELECTOR TYPE"
+          onSelect={(key) => setActiveView(key)}
+        />
+      </>,
+    );
+  }
+
+  // ── VIEW: Match Labels selection grid ─────────────────────────────────────
+  if (activeView === "match-labels") {
+    return pageWrap(
+      <>
+        {renderBackButton("Back to Selectors", () =>
+          setActiveView("selectors"),
+        )}
+        <p
+          style={{
+            fontFamily: "'Rajdhani', sans-serif",
+            fontWeight: 700,
+            fontSize: 32,
+            color: textTitle,
+            margin: "0 0 8px",
+          }}
+        >
+          matchLabels
+        </p>
+        <p
+          style={{
+            fontFamily: "'Space Mono', monospace",
+            fontSize: 11,
+            color: textDesc,
+            margin: "0 0 32px",
+          }}
+        >
+          Select a matchLabels selector pattern to explore
+        </p>
+        <TypeSelectionGrid
+          items={matchLabelsMeta}
+          isDark={isDark}
+          textTitle={textTitle}
+          textDesc={textDesc}
+          badgeLabel="LABEL SELECTOR"
+          onSelect={(key) => setActiveView(key)}
+        />
+      </>,
+    );
+  }
+
+  // ── VIEW: Match Expressions selection grid ────────────────────────────────
+  if (activeView === "match-expressions") {
+    return pageWrap(
+      <>
+        {renderBackButton("Back to Selectors", () =>
+          setActiveView("selectors"),
+        )}
+        <p
+          style={{
+            fontFamily: "'Rajdhani', sans-serif",
+            fontWeight: 700,
+            fontSize: 32,
+            color: textTitle,
+            margin: "0 0 8px",
+          }}
+        >
+          matchExpressions
+        </p>
+        <p
+          style={{
+            fontFamily: "'Space Mono', monospace",
+            fontSize: 11,
+            color: textDesc,
+            margin: "0 0 32px",
+          }}
+        >
+          Select a set-based operator to explore
+        </p>
+        <TypeSelectionGrid
+          items={matchExpressionsMeta}
+          isDark={isDark}
+          textTitle={textTitle}
+          textDesc={textDesc}
+          badgeLabel="EXPRESSION OPERATOR"
+          onSelect={(key) => setActiveView(key)}
+        />
+      </>,
+    );
+  }
+
+  // ── VIEW: matchLabels deep dives ──────────────────────────────────────────
+  if (activeView === "equality-based") {
+    return (
+      <div style={{ minHeight: "100vh", backgroundColor: bg }}>
+        <style>{GLOBAL_STYLES}</style>
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to matchLabels", () =>
+            setActiveView("match-labels"),
+          )}
+        </div>
+        <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
+          <EqualityBasedDeepDive />
+        </div>
+      </div>
+    );
+  }
+
+  if (activeView === "not-equal") {
+    return (
+      <div style={{ minHeight: "100vh", backgroundColor: bg }}>
+        <style>{GLOBAL_STYLES}</style>
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to matchLabels", () =>
+            setActiveView("match-labels"),
+          )}
+        </div>
+        <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
+          <NotEqualDeepDive />
+        </div>
+      </div>
+    );
+  }
+
+  // ── VIEW: matchExpressions deep dives ─────────────────────────────────────
+  if (activeView === "in-operator") {
+    return (
+      <div style={{ minHeight: "100vh", backgroundColor: bg }}>
+        <style>{GLOBAL_STYLES}</style>
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to matchExpressions", () =>
+            setActiveView("match-expressions"),
+          )}
+        </div>
+        <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
+          <InOperatorDeepDive />
+        </div>
+      </div>
+    );
+  }
+
+  if (activeView === "notin-operator") {
+    return (
+      <div style={{ minHeight: "100vh", backgroundColor: bg }}>
+        <style>{GLOBAL_STYLES}</style>
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to matchExpressions", () =>
+            setActiveView("match-expressions"),
+          )}
+        </div>
+        <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
+          <NotInOperatorDeepDive />
+        </div>
+      </div>
+    );
+  }
+
+  if (activeView === "exists-operator") {
+    return (
+      <div style={{ minHeight: "100vh", backgroundColor: bg }}>
+        <style>{GLOBAL_STYLES}</style>
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to matchExpressions", () =>
+            setActiveView("match-expressions"),
+          )}
+        </div>
+        <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
+          <ExistsDeepDive />
+        </div>
+      </div>
+    );
+  }
+
+  if (activeView === "does-not-exist") {
+    return (
+      <div style={{ minHeight: "100vh", backgroundColor: bg }}>
+        <style>{GLOBAL_STYLES}</style>
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to matchExpressions", () =>
+            setActiveView("match-expressions"),
+          )}
+        </div>
+        <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
+          <DoesNotExistDeepDive />
         </div>
       </div>
     );
@@ -3245,6 +3873,136 @@ export default function FullViewK8s() {
               ? "rgba(16,185,129,0.18)"
               : "rgba(16,185,129,0.1)",
             color: "#10b981",
+          }}
+        >
+          →
+        </div>
+      </div>
+      {/* ── SELECTORS CARD ── */}
+      <div
+        className="k8s-card"
+        onClick={() => setActiveView("selectors")}
+        style={{
+          backgroundColor: isDark ? "rgba(15,23,42,0.9)" : "#ffffff",
+          border: `1px solid ${isDark ? "rgba(20,184,166,0.35)" : "rgba(20,184,166,0.28)"}`,
+          boxShadow: isDark
+            ? "0 4px 24px rgba(0,0,0,0.4)"
+            : "0 4px 24px rgba(20,184,166,0.1)",
+        }}
+      >
+        <div
+          className="k8s-stripe"
+          style={{ background: "linear-gradient(90deg, #0f766e, #14b8a6)" }}
+        />
+        <div
+          className="k8s-card-glow"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(20,184,166,0.22) 0%, transparent 70%)",
+          }}
+        />
+        <svg className="k8s-card-bg-hex" viewBox="0 0 100 115" fill="none">
+          <polygon
+            points="50,5 93,28 93,87 50,110 7,87 7,28"
+            stroke="#14b8a6"
+            strokeWidth="4"
+            fill="none"
+          />
+          <polygon
+            points="50,18 83,35 83,80 50,97 17,80 17,35"
+            stroke="#14b8a6"
+            strokeWidth="2"
+            fill="none"
+          />
+        </svg>
+
+        <div className="k8s-card-inner">
+          <div
+            className="k8s-badge"
+            style={{
+              background: isDark
+                ? "rgba(20,184,166,0.13)"
+                : "rgba(20,184,166,0.08)",
+              color: "#0f766e",
+              border: "1px solid rgba(20,184,166,0.3)",
+            }}
+          >
+            <K8sLogo size={13} color="#0f766e" />
+            KUBERNETES CONFIG
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              marginBottom: 14,
+            }}
+          >
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 14,
+                flexShrink: 0,
+                background: "linear-gradient(135deg, #14b8a6 0%, #0f766e 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 4px 16px rgba(20,184,166,0.4)",
+              }}
+            >
+              <SelectorIcon />
+            </div>
+            <div>
+              <p className="k8s-card-title" style={{ color: textTitle }}>
+                Selectors
+              </p>
+              <p className="k8s-card-desc" style={{ color: "#0f766e" }}>
+                v1 · selector/matchLabels · matchExpressions
+              </p>
+            </div>
+          </div>
+
+          <p className="k8s-card-desc" style={{ color: textDesc }}>
+            Label selectors for targeting resources. Explore equality-based
+            matchLabels and set-based matchExpressions operators.
+          </p>
+
+          <div
+            style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}
+          >
+            {["matchLabels", "matchExpressions", "In", "NotIn", "Exists"].map(
+              (tag) => (
+                <span
+                  key={tag}
+                  style={{
+                    fontFamily: "'Space Mono', monospace",
+                    fontSize: 9,
+                    padding: "3px 9px",
+                    borderRadius: 12,
+                    background: isDark
+                      ? "rgba(20,184,166,0.11)"
+                      : "rgba(20,184,166,0.07)",
+                    color: isDark ? "#5eead4" : "#0f766e",
+                    border: "1px solid rgba(20,184,166,0.22)",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  {tag}
+                </span>
+              ),
+            )}
+          </div>
+        </div>
+
+        <div
+          className="k8s-card-arrow"
+          style={{
+            background: isDark
+              ? "rgba(20,184,166,0.18)"
+              : "rgba(20,184,166,0.1)",
+            color: "#0f766e",
           }}
         >
           →
