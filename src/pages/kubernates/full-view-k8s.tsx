@@ -45,15 +45,28 @@ import OnFailure from "./restart-policy/onfailure";
 import ReplicaSet from "./replicas/replica-set";
 import ReplicaController from "./replicas/replica-controller";
 
-// Match labels (FIXED IMPORTS)
+// Match labels 
 import EqualityBasedDeepDive from "./selectors/match-labels/equality-based";
 import NotEqualDeepDive from "./selectors/match-labels/not-equality-based";
 
-// Match Expression (FIXED IMPORTS to match JSX and avoid SVG collisions)
+// Match Expression 
 import InOperatorDeepDive from "./selectors/match-expression/In";
 import NotInOperatorDeepDive from "./selectors/match-expression/notin";
 import ExistsDeepDive from "./selectors/match-expression/exist";
 import DoesNotExistDeepDive from "./selectors/match-expression/doesnotexist";
+
+// Namespace
+import Namespace from "./namespace/namespace"
+
+// Annotation
+import Annotation from "./annotations/annotations"
+
+// Deployement Strategy
+import DeployementStrategy from "./deployment/deployement-strategy"
+
+// Stateful-set
+import StatefulSetComponent from "./statefull-set/statefull-set"
+
 
 export const k8sCommandCount = 4;
 
@@ -933,6 +946,120 @@ function DoesNotExistIcon() {
   );
 }
 
+function NamespaceIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+      <rect
+        x="3"
+        y="3"
+        width="18"
+        height="18"
+        rx="3"
+        stroke="white"
+        strokeWidth="1.5"
+        strokeDasharray="4 3"
+        fill="rgba(255,255,255,0.08)"
+      />
+      <rect
+        x="8"
+        y="8"
+        width="8"
+        height="8"
+        rx="1.5"
+        stroke="white"
+        strokeWidth="1.5"
+        fill="rgba(255,255,255,0.2)"
+      />
+      <path
+        d="M3 12h5M16 12h5M12 3v5M12 16v5"
+        stroke="white"
+        strokeWidth="1.2"
+        strokeDasharray="2 2"
+      />
+    </svg>
+  );
+}
+
+function AnnotationIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M8 6h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H8l-6-6 6-6Z"
+        stroke="white"
+        strokeWidth="1.5"
+        fill="rgba(255,255,255,0.1)"
+        strokeLinejoin="round"
+      />
+      <circle cx="9" cy="12" r="1.5" fill="white" opacity="0.9" />
+      <path
+        d="M13 10h4M13 14h3"
+        stroke="white"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function DeploymentIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M12 2L20 6.5V17.5L12 22L4 17.5V6.5L12 2Z"
+        stroke="white"
+        strokeWidth="1.5"
+        fill="rgba(255,255,255,0.15)"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8 9h8M8 13h6M8 17h4"
+        stroke="white"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+      <circle cx="16" cy="17" r="1.5" fill="white" opacity="0.85" />
+    </svg>
+  );
+}
+
+// Icon for StatefulSet
+function StatefulSetIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M12 2L20 6.5V17.5L12 22L4 17.5V6.5L12 2Z"
+        stroke="white"
+        strokeWidth="1.5"
+        fill="rgba(255,255,255,0.15)"
+        strokeLinejoin="round"
+      />
+      <rect
+        x="8"
+        y="9"
+        width="8"
+        height="6"
+        rx="1"
+        stroke="white"
+        strokeWidth="1.3"
+        fill="rgba(255,255,255,0.1)"
+      />
+      <circle
+        cx="12"
+        cy="12"
+        r="1.5"
+        fill="white"
+        opacity="0.9"
+      />
+      <path
+        d="M12 15v2M12 7V5"
+        stroke="white"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 // ─────────────────────────────────────────────
 // Pod type meta config
 // ─────────────────────────────────────────────
@@ -1480,6 +1607,50 @@ const matchExpressionsMeta = {
 } as const;
 
 type MatchExpressionsKey = keyof typeof matchExpressionsMeta;
+
+
+// ─────────────────────────────────────────────
+// Deployment meta config
+// ─────────────────────────────────────────────
+
+const deploymentMeta = {
+  "deployment-strategy": {
+    label: "Deployments",
+    subtitle: "apps/v1 · Deployment",
+    accent: "#8b5cf6", 
+    accentDim: "rgba(139,92,246,0.15)",
+    accentBorder: "rgba(139,92,246,0.3)",
+    accentShadow: "rgba(139,92,246,0.35)",
+    glow: "rgba(139,92,246,0.18)",
+    gradient: "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)",
+    stripeGradient: "linear-gradient(90deg, #8b5cf6, #c4b5fd)",
+    tags: ["RollingUpdate", "Recreate", "Zero Downtime"],
+    desc: "Declarative updates for Pods and ReplicaSets. Manage rollout strategies, rollbacks, and pod lifecycle with fine-grained control.",
+    icon: <DeploymentIcon />,
+  },
+};
+
+
+// ─────────────────────────────────────────────
+// StatefulSet meta config (amber accent)
+// ─────────────────────────────────────────────
+
+const statefulSetMeta = {
+  "statefulset": {
+    label: "StatefulSets",
+    subtitle: "apps/v1 · StatefulSet",
+    accent: "#f59e0b",           // amber/orange
+    accentDim: "rgba(245,158,11,0.15)",
+    accentBorder: "rgba(245,158,11,0.3)",
+    accentShadow: "rgba(245,158,11,0.35)",
+    glow: "rgba(245,158,11,0.18)",
+    gradient: "linear-gradient(135deg, #f59e0b 0%, #b45309 100%)",
+    stripeGradient: "linear-gradient(90deg, #f59e0b, #fcd34d)",
+    tags: ["Stable Identity", "Persistent Storage", "Ordered Pods"],
+    desc: "Manages stateful applications with stable network identities and persistent storage. Each pod gets its own volume and a predictable hostname.",
+    icon: <StatefulSetIcon />,
+  },
+};
 
 // ─────────────────────────────────────────────
 // Global styles
@@ -2697,6 +2868,82 @@ export default function FullViewK8s() {
         </div>
         <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
           <DoesNotExistDeepDive />
+        </div>
+      </div>
+    );
+  }
+
+  // ── VIEW: Namespace ───────────────────────────────────────────────────────
+  if (activeView === "namespace") {
+    return (
+      <div style={{ minHeight: "100vh", backgroundColor: bg }}>
+        <style>{GLOBAL_STYLES}</style>
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to Kubernetes Menu", () =>
+            setActiveView(null),
+          )}
+        </div>
+        <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
+          <Namespace />
+        </div>
+      </div>
+    );
+  }
+
+  // ── VIEW: Annotations ─────────────────────────────────────────────────────
+  if (activeView === "annotations") {
+    return (
+      <div style={{ minHeight: "100vh", backgroundColor: bg }}>
+        <style>{GLOBAL_STYLES}</style>
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to Kubernetes Menu", () =>
+            setActiveView(null),
+          )}
+        </div>
+        <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
+          <Annotation />
+        </div>
+      </div>
+    );
+  }
+
+  // ── VIEW: Deployment Strategy ─────────────────────────────────────
+  if (activeView === "deployment-strategy") {
+    return (
+      <div style={{ minHeight: "100vh", backgroundColor: bg }}>
+        <style>{GLOBAL_STYLES}</style>
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to Kubernetes Menu", () =>
+            setActiveView(null),
+          )}
+        </div>
+        <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
+          <DeployementStrategy />
+        </div>
+      </div>
+    );
+  }
+
+  // ── VIEW: StatefulSet ───────────────────────────────────────
+  if (activeView === "statefulset") {
+    return (
+      <div style={{ minHeight: "100vh", backgroundColor: bg }}>
+        <style>{GLOBAL_STYLES}</style>
+        <div
+          style={{ padding: "120px 40px 0", maxWidth: 1200, margin: "0 auto" }}
+        >
+          {renderBackButton("Back to Kubernetes Menu", () =>
+            setActiveView(null),
+          )}
+        </div>
+        <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
+          <StatefulSetComponent />
         </div>
       </div>
     );
@@ -4003,6 +4250,520 @@ export default function FullViewK8s() {
               ? "rgba(20,184,166,0.18)"
               : "rgba(20,184,166,0.1)",
             color: "#0f766e",
+          }}
+        >
+          →
+        </div>
+      </div>
+      {/* ── NAMESPACE CARD ── */}
+      <div
+        className="k8s-card"
+        onClick={() => setActiveView("namespace")}
+        style={{
+          backgroundColor: isDark ? "rgba(15,23,42,0.9)" : "#ffffff",
+          border: `1px solid ${isDark ? "rgba(219,39,119,0.35)" : "rgba(219,39,119,0.28)"}`,
+          boxShadow: isDark
+            ? "0 4px 24px rgba(0,0,0,0.4)"
+            : "0 4px 24px rgba(219,39,119,0.1)",
+        }}
+      >
+        <div
+          className="k8s-stripe"
+          style={{ background: "linear-gradient(90deg, #be185d, #ec4899)" }}
+        />
+        <div
+          className="k8s-card-glow"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(219,39,119,0.22) 0%, transparent 70%)",
+          }}
+        />
+        <svg className="k8s-card-bg-hex" viewBox="0 0 100 115" fill="none">
+          <polygon
+            points="50,5 93,28 93,87 50,110 7,87 7,28"
+            stroke="#db2777"
+            strokeWidth="4"
+            fill="none"
+          />
+          <polygon
+            points="50,18 83,35 83,80 50,97 17,80 17,35"
+            stroke="#db2777"
+            strokeWidth="2"
+            fill="none"
+          />
+        </svg>
+
+        <div className="k8s-card-inner">
+          <div
+            className="k8s-badge"
+            style={{
+              background: isDark
+                ? "rgba(219,39,119,0.13)"
+                : "rgba(219,39,119,0.08)",
+              color: "#be185d",
+              border: "1px solid rgba(219,39,119,0.3)",
+            }}
+          >
+            <K8sLogo size={13} color="#be185d" />
+            KUBERNETES ISOLATION
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              marginBottom: 14,
+            }}
+          >
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 14,
+                flexShrink: 0,
+                background: "linear-gradient(135deg, #db2777 0%, #9d174d 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 4px 16px rgba(219,39,119,0.4)",
+              }}
+            >
+              <NamespaceIcon />
+            </div>
+            <div>
+              <p className="k8s-card-title" style={{ color: textTitle }}>
+                Namespaces
+              </p>
+              <p className="k8s-card-desc" style={{ color: "#db2777" }}>
+                v1 · core/Namespace
+              </p>
+            </div>
+          </div>
+
+          <p className="k8s-card-desc" style={{ color: textDesc }}>
+            Logical isolation for Kubernetes clusters. Organize, secure, and
+            divide cluster resources among multiple users or projects.
+          </p>
+
+          <div
+            style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}
+          >
+            {["Isolation", "Quotas", "RBAC"].map((tag) => (
+              <span
+                key={tag}
+                style={{
+                  fontFamily: "'Space Mono', monospace",
+                  fontSize: 9,
+                  padding: "3px 9px",
+                  borderRadius: 12,
+                  background: isDark
+                    ? "rgba(219,39,119,0.11)"
+                    : "rgba(219,39,119,0.07)",
+                  color: isDark ? "#fbcfe8" : "#db2777",
+                  border: "1px solid rgba(219,39,119,0.22)",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div
+          className="k8s-card-arrow"
+          style={{
+            background: isDark
+              ? "rgba(219,39,119,0.18)"
+              : "rgba(219,39,119,0.1)",
+            color: "#db2777",
+          }}
+        >
+          →
+        </div>
+      </div>
+      {/* ── ANNOTATIONS CARD ── */}
+      <div
+        className="k8s-card"
+        onClick={() => setActiveView("annotations")}
+        style={{
+          backgroundColor: isDark ? "rgba(15,23,42,0.9)" : "#ffffff",
+          border: `1px solid ${isDark ? "rgba(217,119,6,0.35)" : "rgba(217,119,6,0.28)"}`,
+          boxShadow: isDark
+            ? "0 4px 24px rgba(0,0,0,0.4)"
+            : "0 4px 24px rgba(217,119,6,0.1)",
+        }}
+      >
+        <div
+          className="k8s-stripe"
+          style={{ background: "linear-gradient(90deg, #b45309, #f59e0b)" }}
+        />
+        <div
+          className="k8s-card-glow"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(217,119,6,0.22) 0%, transparent 70%)",
+          }}
+        />
+        <svg className="k8s-card-bg-hex" viewBox="0 0 100 115" fill="none">
+          <polygon
+            points="50,5 93,28 93,87 50,110 7,87 7,28"
+            stroke="#d97706"
+            strokeWidth="4"
+            fill="none"
+          />
+          <polygon
+            points="50,18 83,35 83,80 50,97 17,80 17,35"
+            stroke="#d97706"
+            strokeWidth="2"
+            fill="none"
+          />
+        </svg>
+
+        <div className="k8s-card-inner">
+          <div
+            className="k8s-badge"
+            style={{
+              background: isDark
+                ? "rgba(217,119,6,0.13)"
+                : "rgba(217,119,6,0.08)",
+              color: "#d97706",
+              border: "1px solid rgba(217,119,6,0.3)",
+            }}
+          >
+            <K8sLogo size={13} color="#d97706" />
+            KUBERNETES METADATA
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              marginBottom: 14,
+            }}
+          >
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 14,
+                flexShrink: 0,
+                background: "linear-gradient(135deg, #d97706 0%, #92400e 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 4px 16px rgba(217,119,6,0.4)",
+              }}
+            >
+              <AnnotationIcon />
+            </div>
+            <div>
+              <p className="k8s-card-title" style={{ color: textTitle }}>
+                Annotations
+              </p>
+              <p className="k8s-card-desc" style={{ color: "#d97706" }}>
+                v1 · ObjectMeta/annotations
+              </p>
+            </div>
+          </div>
+
+          <p className="k8s-card-desc" style={{ color: textDesc }}>
+            Non-identifying metadata attached to objects. Store tool state,
+            build IDs, or configuration for external systems and ingress
+            controllers.
+          </p>
+
+          <div
+            style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}
+          >
+            {["Key=Value", "Non-Selectable", "External Tools"].map((tag) => (
+              <span
+                key={tag}
+                style={{
+                  fontFamily: "'Space Mono', monospace",
+                  fontSize: 9,
+                  padding: "3px 9px",
+                  borderRadius: 12,
+                  background: isDark
+                    ? "rgba(217,119,6,0.11)"
+                    : "rgba(217,119,6,0.07)",
+                  color: isDark ? "#fcd34d" : "#d97706",
+                  border: "1px solid rgba(217,119,6,0.22)",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div
+          className="k8s-card-arrow"
+          style={{
+            background: isDark ? "rgba(217,119,6,0.18)" : "rgba(217,119,6,0.1)",
+            color: "#d97706",
+          }}
+        >
+          →
+        </div>
+      </div>
+      {/* ── DEPLOYMENTS CARD (VIOLET) ── */}
+      <div
+        className="k8s-card"
+        onClick={() => setActiveView("deployment-strategy")}
+        style={{
+          backgroundColor: isDark ? "rgba(15,23,42,0.9)" : "#ffffff",
+          border: `1px solid ${isDark ? "rgba(139,92,246,0.35)" : "rgba(139,92,246,0.28)"}`,
+          boxShadow: isDark
+            ? "0 4px 24px rgba(0,0,0,0.4)"
+            : "0 4px 24px rgba(139,92,246,0.1)",
+        }}
+      >
+        <div
+          className="k8s-stripe"
+          style={{ background: "linear-gradient(90deg, #8b5cf6, #c4b5fd)" }}
+        />
+        <div
+          className="k8s-card-glow"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(139,92,246,0.22) 0%, transparent 70%)",
+          }}
+        />
+        <svg className="k8s-card-bg-hex" viewBox="0 0 100 115" fill="none">
+          <polygon
+            points="50,5 93,28 93,87 50,110 7,87 7,28"
+            stroke="#8b5cf6"
+            strokeWidth="4"
+            fill="none"
+          />
+          <polygon
+            points="50,18 83,35 83,80 50,97 17,80 17,35"
+            stroke="#8b5cf6"
+            strokeWidth="2"
+            fill="none"
+          />
+        </svg>
+
+        <div className="k8s-card-inner">
+          <div
+            className="k8s-badge"
+            style={{
+              background: isDark
+                ? "rgba(139,92,246,0.13)"
+                : "rgba(139,92,246,0.08)",
+              color: "#8b5cf6",
+              border: "1px solid rgba(139,92,246,0.3)",
+            }}
+          >
+            <K8sLogo size={13} color="#8b5cf6" />
+            KUBERNETES WORKLOAD
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              marginBottom: 14,
+            }}
+          >
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 14,
+                flexShrink: 0,
+                background: "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 4px 16px rgba(139,92,246,0.4)",
+              }}
+            >
+              <DeploymentIcon />
+            </div>
+            <div>
+              <p className="k8s-card-title" style={{ color: textTitle }}>
+                Deployments
+              </p>
+              <p className="k8s-card-desc" style={{ color: "#8b5cf6" }}>
+                apps/v1 · Deployment
+              </p>
+            </div>
+          </div>
+
+          <p className="k8s-card-desc" style={{ color: textDesc }}>
+            Declarative updates for Pods and ReplicaSets. Manage rollout
+            strategies, rollbacks, and pod lifecycle with fine-grained control.
+          </p>
+
+          <div
+            style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}
+          >
+            {["RollingUpdate", "Recreate", "Zero Downtime"].map((tag) => (
+              <span
+                key={tag}
+                style={{
+                  fontFamily: "'Space Mono', monospace",
+                  fontSize: 9,
+                  padding: "3px 9px",
+                  borderRadius: 12,
+                  background: isDark
+                    ? "rgba(139,92,246,0.11)"
+                    : "rgba(139,92,246,0.07)",
+                  color: isDark ? "#d8b4fe" : "#8b5cf6",
+                  border: "1px solid rgba(139,92,246,0.22)",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div
+          className="k8s-card-arrow"
+          style={{
+            background: isDark
+              ? "rgba(139,92,246,0.18)"
+              : "rgba(139,92,246,0.1)",
+            color: "#8b5cf6",
+          }}
+        >
+          →
+        </div>
+      </div>
+      {/* ── STATEFULSET CARD (AMBER) ── */}
+      <div
+        className="k8s-card"
+        onClick={() => setActiveView("statefulset")}
+        style={{
+          backgroundColor: isDark ? "rgba(15,23,42,0.9)" : "#ffffff",
+          border: `1px solid ${isDark ? "rgba(245,158,11,0.35)" : "rgba(245,158,11,0.28)"}`,
+          boxShadow: isDark
+            ? "0 4px 24px rgba(0,0,0,0.4)"
+            : "0 4px 24px rgba(245,158,11,0.1)",
+        }}
+      >
+        <div
+          className="k8s-stripe"
+          style={{ background: "linear-gradient(90deg, #f59e0b, #fcd34d)" }}
+        />
+        <div
+          className="k8s-card-glow"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(245,158,11,0.22) 0%, transparent 70%)",
+          }}
+        />
+        <svg className="k8s-card-bg-hex" viewBox="0 0 100 115" fill="none">
+          <polygon
+            points="50,5 93,28 93,87 50,110 7,87 7,28"
+            stroke="#f59e0b"
+            strokeWidth="4"
+            fill="none"
+          />
+          <polygon
+            points="50,18 83,35 83,80 50,97 17,80 17,35"
+            stroke="#f59e0b"
+            strokeWidth="2"
+            fill="none"
+          />
+        </svg>
+
+        <div className="k8s-card-inner">
+          <div
+            className="k8s-badge"
+            style={{
+              background: isDark
+                ? "rgba(245,158,11,0.13)"
+                : "rgba(245,158,11,0.08)",
+              color: "#f59e0b",
+              border: "1px solid rgba(245,158,11,0.3)",
+            }}
+          >
+            <K8sLogo size={13} color="#f59e0b" />
+            KUBERNETES WORKLOAD
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              marginBottom: 14,
+            }}
+          >
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 14,
+                flexShrink: 0,
+                background: "linear-gradient(135deg, #f59e0b 0%, #b45309 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 4px 16px rgba(245,158,11,0.4)",
+              }}
+            >
+              <StatefulSetIcon />
+            </div>
+            <div>
+              <p className="k8s-card-title" style={{ color: textTitle }}>
+                StatefulSets
+              </p>
+              <p className="k8s-card-desc" style={{ color: "#f59e0b" }}>
+                apps/v1 · StatefulSet
+              </p>
+            </div>
+          </div>
+
+          <p className="k8s-card-desc" style={{ color: textDesc }}>
+            Manages stateful applications with stable network identities and
+            persistent storage. Each pod gets its own volume and a predictable
+            hostname.
+          </p>
+
+          <div
+            style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}
+          >
+            {["Stable Identity", "Persistent Storage", "Ordered Pods"].map(
+              (tag) => (
+                <span
+                  key={tag}
+                  style={{
+                    fontFamily: "'Space Mono', monospace",
+                    fontSize: 9,
+                    padding: "3px 9px",
+                    borderRadius: 12,
+                    background: isDark
+                      ? "rgba(245,158,11,0.11)"
+                      : "rgba(245,158,11,0.07)",
+                    color: isDark ? "#fcd34d" : "#f59e0b",
+                    border: "1px solid rgba(245,158,11,0.22)",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  {tag}
+                </span>
+              ),
+            )}
+          </div>
+        </div>
+
+        <div
+          className="k8s-card-arrow"
+          style={{
+            background: isDark
+              ? "rgba(245,158,11,0.18)"
+              : "rgba(245,158,11,0.1)",
+            color: "#f59e0b",
           }}
         >
           →

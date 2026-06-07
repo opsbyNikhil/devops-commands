@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { CopyOutlined, CheckOutlined } from "@ant-design/icons";
-import { useTheme } from "../../../../Themecontext";
+import { useTheme } from "../../../Themecontext";
 
 // ----------------------------------------------
-// Syntax-highlighting component (enhanced)
+// Syntax-highlighting component (enhanced for deployment keys)
 // ----------------------------------------------
 const YamlLine = ({ line, isDark }: { line: string; isDark: boolean }) => {
   const colors = {
@@ -12,7 +12,7 @@ const YamlLine = ({ line, isDark }: { line: string; isDark: boolean }) => {
     number: isDark ? "#fbbf24" : "#b45309",
     string: isDark ? "#f9a8d4" : "#be185d",
     comment: isDark ? "#6b7280" : "#4b5563",
-    highlight: isDark ? "#c084fc" : "#9333ea", // purple for Exists
+    highlight: isDark ? "#38bdf8" : "#0284c7", // blue for strategy keys
   };
 
   const renderLine = (text: string) => {
@@ -60,14 +60,16 @@ const YamlLine = ({ line, isDark }: { line: string; isDark: boolean }) => {
       );
     }
 
-    const isOperator = key === "operator";
+    // Highlight deployment strategy related keys
+    const isStrategyKey =
+      key === "strategy" ||
+      key === "rollingUpdate" ||
+      key === "maxSurge" ||
+      key === "maxUnavailable" ||
+      key === "minReadySeconds";
     const coloredValue =
       value === "" ? (
         ""
-      ) : isOperator ? (
-        <span style={{ color: colors.highlight, fontWeight: 600 }}>
-          {value}
-        </span>
       ) : /^\d+$/.test(value) ? (
         <span style={{ color: colors.number }}>{value}</span>
       ) : (
@@ -77,8 +79,14 @@ const YamlLine = ({ line, isDark }: { line: string; isDark: boolean }) => {
     return (
       <>
         {spaces}
-        <span style={{ color: colors.key }}>{key}</span>:
-        {value !== "" && <> {coloredValue}</>}
+        <span
+          style={{
+            color: isStrategyKey ? colors.highlight : colors.key,
+          }}
+        >
+          {key}
+        </span>
+        :{value !== "" && <> {coloredValue}</>}
       </>
     );
   };
@@ -136,26 +144,36 @@ const SectionLabel = ({
 );
 
 // ----------------------------------------------
-// Main component – Exists operator (presence check)
+// Main component – Deployment Strategy (RollingUpdate)
 // ----------------------------------------------
-const ExistsSelector = () => {
+const DeploymentStrategy = () => {
   const { isDark } = useTheme();
   const [copied, setCopied] = useState(false);
 
-  const yamlSnippet = `apiVersion: v1
+  // YAML snippet focusing on strategy and relevant parts
+  const yamlSnippet = `apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: myapp
+  name: pod-dep
 spec:
   minReadySeconds: 5
   replicas: 5
   selector:
-    matchExpressions:
-      - key: app
-        operator: Exists
-        values:
-          - zomato
-          - uber`;
+    matchLabels:
+      app: red-app
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: red-app
+    spec:
+      containers:
+      - name: red-con
+        image: opsbynikhil/redpage:REDPAGE`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(yamlSnippet);
@@ -163,8 +181,8 @@ spec:
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Theme‑aware colour palette (purple for Exists)
-  const bg = isDark ? "#0f0a12" : "#faf5ff";
+  // Theme‑aware colour palette (blue/cyan for RollingUpdate)
+  const bg = isDark ? "#0f0a12" : "#f0f9ff";
   const cardBg = isDark ? "#150f18" : "#ffffff";
   const cardBorder = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
   const divider = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
@@ -175,115 +193,120 @@ spec:
   const txtSec = isDark ? "rgba(220,180,200,0.7)" : "#475569";
   const txtMuted = isDark ? "rgba(249,168,212,0.4)" : "#64748b";
 
-  // Primary accent = purple (Exists), secondary = blue
-  const purple = isDark ? "#c084fc" : "#9333ea";
-  const purpleAlpha = isDark
-    ? "rgba(192,132,252,0.08)"
-    : "rgba(147,51,234,0.06)";
-  const purpleBorder = isDark
-    ? "rgba(192,132,252,0.28)"
-    : "rgba(147,51,234,0.2)";
-
-  const blue = isDark ? "#7dd3fc" : "#0284c7";
-  const blueAlpha = isDark ? "rgba(125,211,252,0.07)" : "rgba(2,132,199,0.05)";
-  const blueBorder = isDark ? "rgba(125,211,252,0.22)" : "rgba(2,132,199,0.15)";
+  // Primary accent = blue (RollingUpdate), secondary = green
+  const blue = isDark ? "#38bdf8" : "#0284c7";
+  const blueAlpha = isDark ? "rgba(56,189,248,0.08)" : "rgba(2,132,199,0.06)";
+  const blueBorder = isDark ? "rgba(56,189,248,0.28)" : "rgba(2,132,199,0.2)";
 
   const green = isDark ? "#34d399" : "#059669";
   const greenAlpha = isDark ? "rgba(52,211,153,0.07)" : "rgba(5,150,105,0.05)";
+  const greenBorder = isDark ? "rgba(52,211,153,0.22)" : "rgba(5,150,105,0.15)";
+
+  const orange = isDark ? "#fbbf24" : "#d97706";
+  const orangeAlpha = isDark ? "rgba(251,191,36,0.07)" : "rgba(217,119,6,0.05)";
 
   const headerGrad = isDark
     ? "linear-gradient(135deg,#1a0f1f 0%,#150f18 60%)"
-    : "linear-gradient(135deg,#f3e8ff 0%,#ffffff 60%)";
+    : "linear-gradient(135deg,#e0f2fe 0%,#ffffff 60%)";
 
   const mono = "'Space Mono','SF Mono','Menlo',monospace";
   const sans = "'Outfit','Inter',-apple-system,BlinkMacSystemFont,sans-serif";
 
-  // Steps for Exists operator usage
+  // Steps for using RollingUpdate strategy
   const steps = [
     {
       id: 1,
-      title: "Define matchExpressions with Exists",
+      title: "Define strategy in Deployment",
       description:
-        "Use operator: Exists to match any resource that has the label key (any value).",
-      cmd: "selector:\n  matchExpressions:\n  - key: app\n    operator: Exists",
-      accentColor: purple,
-      accentBg: purpleAlpha,
-      accentBorder: purpleBorder,
-    },
-    {
-      id: 2,
-      title: "Apply Deployment",
-      description:
-        "The Deployment will select all Pods that have the 'app' label, regardless of its value.",
-      cmd: "kubectl apply -f deployment.yaml",
+        "Specify `strategy.type: RollingUpdate` and tune `maxSurge`/`maxUnavailable`.",
+      cmd: "strategy:\n  type: RollingUpdate\n  rollingUpdate:\n    maxSurge: 1\n    maxUnavailable: 1",
       accentColor: blue,
       accentBg: blueAlpha,
       accentBorder: blueBorder,
     },
     {
-      id: 3,
-      title: "Verify selected Pods",
+      id: 2,
+      title: "Apply the Deployment",
       description:
-        "List Pods that have the label (any value) – note that values are ignored.",
-      cmd: "kubectl get pods -l app",
-      accentColor: purple,
-      accentBg: purpleAlpha,
-      accentBorder: purpleBorder,
+        "Kubernetes will create the Deployment with 5 replicas (all red-app).",
+      cmd: "kubectl apply -f deployment.yaml",
+      accentColor: green,
+      accentBg: greenAlpha,
+      accentBorder: greenBorder,
+    },
+    {
+      id: 3,
+      title: "Trigger a rolling update",
+      description:
+        "Change the container image (e.g., REDPAGE → NEWPAGE) and re-apply.",
+      cmd: "kubectl set image deployment/pod-dep red-con=opsbynikhil/redpage:NEWPAGE",
+      accentColor: blue,
+      accentBg: blueAlpha,
+      accentBorder: blueBorder,
+    },
+    {
+      id: 4,
+      title: "Watch the rollout",
+      description:
+        "Pods are replaced gradually – old pods terminate as new ones become ready.",
+      cmd: "kubectl rollout status deployment/pod-dep",
+      accentColor: orange,
+      accentBg: orangeAlpha,
+      accentBorder: "rgba(251,191,36,0.22)",
     },
   ];
 
-  // Selection matrix data
+  // Rolling update behavior scenarios (matrix)
   const scenarios = [
     {
-      label: "app: zomato (key exists)",
-      selected: true,
-      note: "Key exists → selected",
+      label: "maxSurge=1, maxUnavailable=1",
+      behavior:
+        "At most 1 extra pod above desired count, at most 1 unavailable during update",
     },
     {
-      label: "app: uber (key exists)",
-      selected: true,
-      note: "Key exists → selected",
+      label: "maxSurge=25%, maxUnavailable=25% (5 replicas)",
+      behavior: "1 extra pod, 1 unavailable (rounded up)",
     },
     {
-      label: "app: any-value (key exists)",
-      selected: true,
-      note: "Any value → selected",
+      label: "maxSurge=0, maxUnavailable=1",
+      behavior: "No extra capacity, 1 pod at a time (slower, minimal resource)",
     },
     {
-      label: "No app label (key missing)",
-      selected: false,
-      note: "Key missing → rejected",
+      label: "maxSurge=1, maxUnavailable=0",
+      behavior: "New pod created first, old pod terminated after new ready",
     },
   ];
 
-  // Comparison: Exists vs DoesNotExist vs In
+  // Comparison: RollingUpdate vs Recreate
   const comparisons = [
     {
-      feature: "Operator",
-      exists: "Exists",
-      doesNotExist: "DoesNotExist",
-      in: "In",
+      feature: "Zero downtime",
+      rollingUpdate: "Yes (gradual replacement)",
+      recreate: "No (all pods terminated first)",
     },
     {
-      feature: "Matches when",
-      exists: "label present (any value)",
-      doesNotExist: "label absent",
-      in: "value ∈ set",
+      feature: "Resource usage",
+      rollingUpdate: "Extra capacity (maxSurge)",
+      recreate: "No extra pods, but complete outage",
     },
     {
-      feature: "Missing label",
-      exists: "No match",
-      doesNotExist: "Matches",
-      in: "No match",
+      feature: "Rollback speed",
+      rollingUpdate: "Fast (gradual)",
+      recreate: "Full rebuild (slower)",
+    },
+    {
+      feature: "Best for",
+      rollingUpdate: "Web apps, APIs",
+      recreate: "Batch jobs, stateful with breaking changes",
     },
   ];
 
   // Best for tags
   const bestFor = [
-    "Feature detection",
-    "Optional label presence",
-    "Gradual rollouts",
-    "Annotation checks",
+    "Zero‑downtime deployments",
+    "Web applications",
+    "Microservices",
+    "High‑availability systems",
   ];
 
   const t = (darkVal: string, lightVal: string) =>
@@ -314,11 +337,11 @@ spec:
           50%      { opacity:1; }
         }
 
-        .exists-pulse       { animation: pulse-glow 2s ease-in-out infinite; }
-        .exists-arrow       { animation: arrow-fade 2s ease-in-out infinite; }
-        .exists-copy:hover  { color:${purple} !important; border-color:${purpleBorder} !important; }
-        .exists-step:hover  { background:${purpleAlpha} !important; transform:translateX(2px); }
-        .exists-row:hover   { background:${purpleAlpha} !important; transform:translateX(3px); }
+        .strat-pulse       { animation: pulse-glow 2s ease-in-out infinite; }
+        .strat-arrow       { animation: arrow-fade 2s ease-in-out infinite; }
+        .strat-copy:hover  { color:${blue} !important; border-color:${blueBorder} !important; }
+        .strat-step:hover  { background:${blueAlpha} !important; transform:translateX(2px); }
+        .strat-row:hover   { background:${blueAlpha} !important; transform:translateX(3px); }
       `}</style>
 
       <div
@@ -349,7 +372,7 @@ spec:
               right: -80,
               width: 260,
               height: 260,
-              background: `radial-gradient(circle,${purpleAlpha.replace("0.08", "0.22")} 0%,transparent 70%)`,
+              background: `radial-gradient(circle,${blueAlpha.replace("0.08", "0.22")} 0%,transparent 70%)`,
               pointerEvents: "none",
             }}
           />
@@ -377,25 +400,25 @@ spec:
                     fontFamily: mono,
                     fontSize: 10,
                     letterSpacing: "2px",
-                    color: purple,
+                    color: blue,
                     textTransform: "uppercase",
                   }}
                 >
-                  Kubernetes · Set‑based Selector
+                  Kubernetes · Deployment Strategy
                 </span>
                 <span
                   style={{
                     fontFamily: mono,
                     fontSize: 9,
                     letterSpacing: "1px",
-                    color: blue,
-                    background: blueAlpha,
-                    border: `1px solid ${blueBorder}`,
+                    color: green,
+                    background: greenAlpha,
+                    border: `1px solid ${greenBorder}`,
                     borderRadius: 20,
                     padding: "2px 10px",
                   }}
                 >
-                  operator: Exists
+                  RollingUpdate
                 </span>
               </div>
 
@@ -409,7 +432,7 @@ spec:
                   fontFamily: sans,
                 }}
               >
-                <span style={{ color: purple }}>Exists</span> Operator
+                <span style={{ color: blue }}>RollingUpdate</span> Strategy
               </div>
 
               <div
@@ -421,12 +444,10 @@ spec:
                   lineHeight: 1.6,
                 }}
               >
-                Selects resources that{" "}
-                <strong style={{ color: purple, fontWeight: 500 }}>
-                  have the label key
-                </strong>{" "}
-                (regardless of value). The <code>values</code> array is ignored
-                — perfect for presence checks.
+                Updates Pods gradually with zero downtime. Configure{" "}
+                <strong style={{ color: blue }}>maxSurge</strong> and{" "}
+                <strong style={{ color: blue }}>maxUnavailable</strong> to
+                control the speed and resource usage.
               </div>
             </div>
 
@@ -435,16 +456,16 @@ spec:
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
-                background: purpleAlpha,
-                border: `1px solid ${purpleBorder}`,
+                background: blueAlpha,
+                border: `1px solid ${blueBorder}`,
                 borderRadius: 40,
                 padding: "6px 18px",
                 alignSelf: "flex-start",
               }}
             >
               <span
-                className="exists-pulse"
-                style={{ fontFamily: mono, fontSize: 12, color: purple }}
+                className="strat-pulse"
+                style={{ fontFamily: mono, fontSize: 12, color: blue }}
               >
                 ●
               </span>
@@ -453,10 +474,10 @@ spec:
                   fontFamily: mono,
                   fontSize: 10,
                   letterSpacing: "1.5px",
-                  color: purple,
+                  color: blue,
                 }}
               >
-                EXISTS OPERATOR DEMO
+                ROLLING UPDATE DEMO
               </span>
             </div>
           </div>
@@ -492,22 +513,22 @@ spec:
               >
                 {[
                   {
-                    label: "matchExpressions",
+                    label: "strategy: RollingUpdate",
                     bg: blueAlpha,
                     border: blueBorder,
                     color: blue,
                   },
                   {
-                    label: "operator: Exists",
-                    bg: purpleAlpha,
-                    border: purpleBorder,
-                    color: purple,
+                    label: "maxSurge: 1",
+                    bg: greenAlpha,
+                    border: greenBorder,
+                    color: green,
                   },
                   {
-                    label: "presence check",
-                    bg: greenAlpha,
-                    border: t("rgba(52,211,153,0.22)", "rgba(5,150,105,0.15)"),
-                    color: green,
+                    label: "maxUnavailable: 1",
+                    bg: orangeAlpha,
+                    border: t("rgba(251,191,36,0.22)", "rgba(217,119,6,0.15)"),
+                    color: orange,
                   },
                 ].map((tag) => (
                   <span
@@ -530,8 +551,8 @@ spec:
               {/* Steps timeline */}
               <div
                 style={{
-                  background: purpleAlpha,
-                  border: `1px solid ${purpleBorder}`,
+                  background: blueAlpha,
+                  border: `1px solid ${blueBorder}`,
                   borderRadius: 12,
                   padding: "14px 16px",
                   marginBottom: 18,
@@ -543,17 +564,17 @@ spec:
                     fontSize: 9,
                     letterSpacing: "1.8px",
                     textTransform: "uppercase",
-                    color: purple,
+                    color: blue,
                     marginBottom: 12,
                   }}
                 >
-                  Setup Steps
+                  How to use
                 </div>
 
                 {steps.map((step, idx) => (
                   <div key={step.id}>
                     <div
-                      className="exists-step"
+                      className="strat-step"
                       style={{
                         display: "flex",
                         alignItems: "flex-start",
@@ -641,8 +662,8 @@ spec:
                         }}
                       >
                         <span
-                          className="exists-arrow"
-                          style={{ color: purple, fontSize: 14 }}
+                          className="strat-arrow"
+                          style={{ color: blue, fontSize: 14 }}
                         >
                           ↓
                         </span>
@@ -656,22 +677,22 @@ spec:
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                 {[
                   {
-                    label: "Presence check",
-                    bg: purpleAlpha,
-                    border: purpleBorder,
-                    color: purple,
-                  },
-                  {
-                    label: "Value‑agnostic",
+                    label: "Zero downtime",
                     bg: blueAlpha,
                     border: blueBorder,
                     color: blue,
                   },
                   {
-                    label: "Key‑based",
+                    label: "Gradual replacement",
                     bg: greenAlpha,
-                    border: t("rgba(52,211,153,0.22)", "rgba(5,150,105,0.15)"),
+                    border: greenBorder,
                     color: green,
+                  },
+                  {
+                    label: "Configurable surge",
+                    bg: orangeAlpha,
+                    border: t("rgba(251,191,36,0.22)", "rgba(217,119,6,0.15)"),
+                    color: orange,
                   },
                 ].map((tag) => (
                   <span
@@ -711,10 +732,10 @@ spec:
                     color: txtMuted,
                   }}
                 >
-                  exists-selector.yaml
+                  deployment.yaml (excerpt)
                 </span>
                 <button
-                  className="exists-copy"
+                  className="strat-copy"
                   onClick={handleCopy}
                   style={{
                     fontFamily: mono,
@@ -723,7 +744,7 @@ spec:
                     borderRadius: 5,
                     border: `1px solid ${codeBorder}`,
                     background: "transparent",
-                    color: copied ? purple : txtMuted,
+                    color: copied ? blue : txtMuted,
                     cursor: "pointer",
                     transition: "all 0.2s",
                   }}
@@ -751,7 +772,7 @@ spec:
             <div
               style={{
                 background: greenAlpha,
-                border: `1px solid ${t("rgba(52,211,153,0.22)", "rgba(5,150,105,0.15)")}`,
+                border: `1px solid ${greenBorder}`,
                 borderRadius: 10,
                 padding: "12px 16px",
               }}
@@ -769,10 +790,12 @@ spec:
                 Important Note
               </div>
               <p style={{ fontSize: 12.5, color: txtSec, lineHeight: 1.6 }}>
-                The <code>Exists</code> operator matches <strong>any</strong>{" "}
-                value – even empty strings. If a label is present, it's a match.
-                The <code>values</code> field is conventionally omitted, but if
-                provided it has no effect.
+                <code>minReadySeconds</code> delays the readiness of new pods,
+                giving them time to stabilize. <code>maxSurge</code> and{" "}
+                <code>maxUnavailable</code> can be absolute numbers or
+                percentages. The Deployment controller ensures the number of
+                available pods never drops below desired replicas minus{" "}
+                <code>maxUnavailable</code>.
               </p>
             </div>
 
@@ -783,9 +806,9 @@ spec:
                 fontSize: 10.5,
                 padding: "10px 16px",
                 borderRadius: 8,
-                background: purpleAlpha,
-                border: `1px solid ${purpleBorder}`,
-                color: purple,
+                background: blueAlpha,
+                border: `1px solid ${blueBorder}`,
+                color: blue,
                 display: "flex",
                 alignItems: "center",
                 gap: 10,
@@ -793,9 +816,9 @@ spec:
               }}
             >
               <span style={{ color: txtMuted, flexShrink: 0 }}>$</span>
-              <span>kubectl get pods -l app</span>
+              <span>kubectl rollout status deploy/pod-dep</span>
               <span style={{ color: txtMuted }}>·</span>
-              <span>kubectl describe deployment myapp</span>
+              <span>kubectl rollout history deploy/pod-dep</span>
             </div>
           </div>
 
@@ -808,10 +831,10 @@ spec:
               gap: 26,
             }}
           >
-            {/* Presence flow diagram */}
+            {/* Rolling update flow diagram */}
             <div>
               <SectionLabel
-                label="Selection flow"
+                label="Update flow (maxSurge=1, maxUnavailable=1)"
                 mono={mono}
                 color={txtMuted}
                 divider={divider}
@@ -827,9 +850,14 @@ spec:
                 <div style={{ display: "flex", alignItems: "stretch" }}>
                   {(
                     [
-                      { icon: "🏷️", label: "Pod Labels", accent: false },
-                      { icon: "🔍", label: "Check\nExists", accent: true },
-                      { icon: "✅", label: "Key\npresent?", accent: false },
+                      { icon: "🔄", label: "New\nimage", accent: true },
+                      { icon: "➕", label: "Start 1\nnew pod", accent: false },
+                      { icon: "❌", label: "Terminate\n1 old", accent: false },
+                      {
+                        icon: "✅",
+                        label: "Repeat\nuntil done",
+                        accent: false,
+                      },
                     ] as const
                   ).map((step, idx, arr) => (
                     <div
@@ -845,9 +873,9 @@ spec:
                           flex: 1,
                           textAlign: "center",
                           background: step.accent
-                            ? purpleAlpha
+                            ? blueAlpha
                             : "rgba(255,255,255,0.03)",
-                          border: `1px solid ${step.accent ? purpleBorder : divider}`,
+                          border: `1px solid ${step.accent ? blueBorder : divider}`,
                           borderRadius: 10,
                           padding: "12px 6px",
                         }}
@@ -856,7 +884,7 @@ spec:
                           style={{
                             fontSize: 20,
                             marginBottom: 7,
-                            color: step.accent ? purple : "inherit",
+                            color: step.accent ? blue : "inherit",
                             opacity: step.accent ? 1 : 0.55,
                           }}
                         >
@@ -867,7 +895,7 @@ spec:
                             fontFamily: mono,
                             fontSize: 9.5,
                             lineHeight: 1.5,
-                            color: step.accent ? purple : txtSec,
+                            color: step.accent ? blue : txtSec,
                             whiteSpace: "pre",
                           }}
                         >
@@ -876,10 +904,10 @@ spec:
                       </div>
                       {idx < arr.length - 1 && (
                         <div
-                          className="exists-arrow"
+                          className="strat-arrow"
                           style={{
                             fontSize: 16,
-                            color: purple,
+                            color: blue,
                             padding: "0 6px",
                           }}
                         >
@@ -900,16 +928,16 @@ spec:
                     textAlign: "center",
                   }}
                 >
-                  <span style={{ color: purple }}>✓</span> Any pod with the
-                  label <code>app</code> (any value) is selected.
+                  <span style={{ color: blue }}>✓</span> At most 1 extra pod
+                  created, at most 1 unavailable – gradual, safe rollout.
                 </div>
               </div>
             </div>
 
-            {/* Selection matrix */}
+            {/* Configuration matrix */}
             <div>
               <SectionLabel
-                label="Selection matrix"
+                label="RollingUpdate configuration effects"
                 mono={mono}
                 color={txtMuted}
                 divider={divider}
@@ -925,7 +953,7 @@ spec:
                 {scenarios.map((s, i) => (
                   <div
                     key={i}
-                    className="exists-row"
+                    className="strat-row"
                     style={{
                       display: "flex",
                       justifyContent: "space-between",
@@ -941,41 +969,32 @@ spec:
                     <span
                       style={{
                         fontFamily: mono,
-                        fontSize: 12,
+                        fontSize: 11,
                         color: txt,
+                        fontWeight: 500,
                       }}
                     >
                       {s.label}
                     </span>
                     <span
                       style={{
-                        background: s.selected ? purpleAlpha : "transparent",
-                        color: s.selected ? purple : txtMuted,
                         fontSize: 11,
-                        fontWeight: 500,
-                        padding: "4px 14px",
-                        borderRadius: 24,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 6,
+                        color: txtSec,
+                        maxWidth: "55%",
+                        textAlign: "right",
                       }}
                     >
-                      {s.selected ? "✓ SELECTED" : "✗ REJECTED"}
-                      {s.note && (
-                        <span style={{ opacity: 0.6, fontWeight: 400 }}>
-                          ({s.note})
-                        </span>
-                      )}
+                      {s.behavior}
                     </span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Comparison: Exists vs DoesNotExist vs In */}
+            {/* Comparison: RollingUpdate vs Recreate */}
             <div>
               <SectionLabel
-                label="Set‑based operators"
+                label="RollingUpdate vs Recreate"
                 mono={mono}
                 color={txtMuted}
                 divider={divider}
@@ -991,7 +1010,7 @@ spec:
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "1fr 1fr 1fr 1fr",
+                    gridTemplateColumns: "1fr 1fr 1fr",
                     background: isDark
                       ? "rgba(255,255,255,0.03)"
                       : "rgba(0,0,0,0.02)",
@@ -1014,39 +1033,29 @@ spec:
                       fontFamily: mono,
                       fontSize: 9,
                       letterSpacing: "1px",
-                      color: purple,
-                    }}
-                  >
-                    Exists
-                  </span>
-                  <span
-                    style={{
-                      fontFamily: mono,
-                      fontSize: 9,
-                      letterSpacing: "1px",
                       color: blue,
                     }}
                   >
-                    DoesNotExist
+                    RollingUpdate
                   </span>
                   <span
                     style={{
                       fontFamily: mono,
                       fontSize: 9,
                       letterSpacing: "1px",
-                      color: green,
+                      color: orange,
                     }}
                   >
-                    In
+                    Recreate
                   </span>
                 </div>
                 {comparisons.map((item, i) => (
                   <div
                     key={i}
-                    className="exists-row"
+                    className="strat-row"
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "1fr 1fr 1fr 1fr",
+                      gridTemplateColumns: "1fr 1fr 1fr",
                       padding: "10px 18px",
                       borderBottom:
                         i !== comparisons.length - 1
@@ -1060,14 +1069,11 @@ spec:
                     >
                       {item.feature}
                     </span>
-                    <span style={{ fontSize: 11.5, color: purple }}>
-                      {item.exists}
-                    </span>
                     <span style={{ fontSize: 11.5, color: blue }}>
-                      {item.doesNotExist}
+                      {item.rollingUpdate}
                     </span>
-                    <span style={{ fontSize: 11.5, color: green }}>
-                      {item.in}
+                    <span style={{ fontSize: 11.5, color: orange }}>
+                      {item.recreate}
                     </span>
                   </div>
                 ))}
@@ -1091,9 +1097,9 @@ spec:
                       fontSize: 10,
                       padding: "4px 12px",
                       borderRadius: 4,
-                      background: blueAlpha,
-                      border: `1px solid ${blueBorder}`,
-                      color: blue,
+                      background: greenAlpha,
+                      border: `1px solid ${greenBorder}`,
+                      color: green,
                     }}
                   >
                     {item}
@@ -1112,8 +1118,8 @@ spec:
               />
               <div
                 style={{
-                  background: purpleAlpha,
-                  border: `1px solid ${purpleBorder}`,
+                  background: blueAlpha,
+                  border: `1px solid ${blueBorder}`,
                   borderRadius: 12,
                   padding: "14px 18px",
                   marginBottom: 12,
@@ -1125,17 +1131,17 @@ spec:
                     fontSize: 9,
                     letterSpacing: "1.5px",
                     textTransform: "uppercase",
-                    color: purple,
+                    color: blue,
                     marginBottom: 8,
                   }}
                 >
-                  Use Exists for feature detection
+                  Tune maxSurge and maxUnavailable carefully
                 </div>
                 <p style={{ fontSize: 13, color: txtSec, lineHeight: 1.6 }}>
-                  The <code>Exists</code> operator is ideal when you only care
-                  whether a label is present, not its value. Common use cases:
-                  feature flags, opt‑in mechanisms, and detecting if a Pod has
-                  been processed by a controller.
+                  For production, start with <code>maxSurge: 25%</code> and{" "}
+                  <code>maxUnavailable: 0</code> to ensure no downtime. Use
+                  readiness probes and <code>minReadySeconds</code> to guarantee
+                  new pods are fully functional before terminating old ones.
                 </p>
               </div>
             </div>
@@ -1146,4 +1152,4 @@ spec:
   );
 };
 
-export default ExistsSelector;
+export default DeploymentStrategy;

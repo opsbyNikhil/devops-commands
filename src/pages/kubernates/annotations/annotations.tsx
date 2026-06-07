@@ -1,27 +1,49 @@
-import React, { useState } from "react";
-import { CopyOutlined, CheckOutlined } from "@ant-design/icons";
-import { useTheme } from "../../../../Themecontext";
+import { useState } from "react";
+import { useTheme } from "../../../Themecontext";
 
-// ----------------------------------------------
-// Syntax-highlighting component (enhanced)
-// ----------------------------------------------
-const YamlLine = ({ line, isDark }: { line: string; isDark: boolean }) => {
-  const colors = {
-    key: isDark ? "#7dd3fc" : "#0369a1",
-    value: isDark ? "#86efac" : "#15803d",
-    number: isDark ? "#fbbf24" : "#b45309",
-    string: isDark ? "#f9a8d4" : "#be185d",
-    comment: isDark ? "#6b7280" : "#4b5563",
-    highlight: isDark ? "#f9a8d4" : "#db2777", // pink for DoesNotExist
-  };
+// ── Types ────────────────────────────────────────────────────────────────────
+type LineToken = { text: string; color: string };
+
+// ── YAML ─────────────────────────────────────────────────────────────────────
+const podYaml = `apiVersion: v1
+kind: Pod
+metadata:
+  name: annotation-pod
+  labels:
+    env: anno-prod
+  annotations:
+    kubernetes.io/change-cause: "deploy"
+spec:
+  containers:
+    - name: anna-con
+      image: jenkins/jenkins`;
+
+// ── Annotation YAML line renderer (matches pattern but with annotation colors) ──
+function AnnotationYamlLine({
+  line,
+  isDark,
+}: {
+  line: string;
+  isDark: boolean;
+}) {
+  // Annotation-specific color palette
+  const keyColor = isDark ? "#f9a8d4" : "#db2777"; // pink
+  const specialKeyColor = isDark ? "#c084fc" : "#9333ea"; // purple for annotation key
+  const valueColor = isDark ? "#a5b4fc" : "#4f46e5"; // indigo
+  const numberColor = isDark ? "#fcd34d" : "#d97706"; // amber
+  const stringColor = isDark ? "#67e8f9" : "#0891b2"; // cyan
+  const highlightColor = isDark ? "#34d399" : "#059669"; // green for Pod kind
 
   const renderLine = (text: string) => {
     const trimmed = text.trimStart();
     const indent = text.length - trimmed.length;
     const spaces = "\u00a0".repeat(indent);
 
-    if (trimmed.startsWith("#"))
-      return <span style={{ color: colors.comment }}>{text}</span>;
+    if (trimmed.startsWith("#")) {
+      return (
+        <span style={{ color: isDark ? "#6b7280" : "#9ca3af" }}>{text}</span>
+      );
+    }
 
     const colonIdx = trimmed.indexOf(":");
     if (colonIdx === -1) {
@@ -30,54 +52,54 @@ const YamlLine = ({ line, isDark }: { line: string; isDark: boolean }) => {
         return (
           <>
             {spaces}
-            <span style={{ color: colors.key }}>- </span>
-            <span style={{ color: colors.value }}>{rest}</span>
+            <span style={{ color: keyColor }}>{"- "}</span>
+            <span style={{ color: valueColor }}>{rest}</span>
           </>
         );
       }
-      return <span style={{ color: colors.value }}>{text}</span>;
+      return <span style={{ color: valueColor }}>{text}</span>;
     }
 
     const key = trimmed.slice(0, colonIdx);
     const value = trimmed.slice(colonIdx + 1).trim();
 
+    // Special handling for annotation key kubernetes.io/change-cause
+    const isAnnotationKey = key === "kubernetes.io/change-cause";
+    const actualKeyColor = isAnnotationKey ? specialKeyColor : keyColor;
+
     if (key.startsWith("- ")) {
       const realKey = key.slice(2);
       const coloredValue =
-        value === "" ? (
-          ""
-        ) : /^\d+$/.test(value) ? (
-          <span style={{ color: colors.number }}>{value}</span>
+        value === "" ? null : /^\d+$/.test(value) ? (
+          <span style={{ color: numberColor }}>{value}</span>
         ) : (
-          <span style={{ color: colors.string }}>{value}</span>
+          <span style={{ color: stringColor }}>{value}</span>
         );
       return (
         <>
           {spaces}
-          <span style={{ color: colors.key }}>- {realKey}</span>:
-          {value !== "" && <> {coloredValue}</>}
+          <span style={{ color: actualKeyColor }}>
+            {"- "}
+            {realKey}
+          </span>
+          :{value !== "" && <> {coloredValue}</>}
         </>
       );
     }
 
-    const isOperator = key === "operator";
     const coloredValue =
-      value === "" ? (
-        ""
-      ) : isOperator ? (
-        <span style={{ color: colors.highlight, fontWeight: 600 }}>
-          {value}
-        </span>
+      value === "" ? null : key === "kind" && value === "Pod" ? (
+        <span style={{ color: highlightColor, fontWeight: 700 }}>{value}</span>
       ) : /^\d+$/.test(value) ? (
-        <span style={{ color: colors.number }}>{value}</span>
+        <span style={{ color: numberColor }}>{value}</span>
       ) : (
-        <span style={{ color: colors.string }}>{value}</span>
+        <span style={{ color: stringColor }}>{value}</span>
       );
 
     return (
       <>
         {spaces}
-        <span style={{ color: colors.key }}>{key}</span>:
+        <span style={{ color: actualKeyColor }}>{key}</span>:
         {value !== "" && <> {coloredValue}</>}
       </>
     );
@@ -88,19 +110,125 @@ const YamlLine = ({ line, isDark }: { line: string; isDark: boolean }) => {
       style={{
         fontFamily: "'Space Mono','SF Mono','Menlo',monospace",
         fontSize: "11.5px",
-        lineHeight: 1.7,
+        lineHeight: "1.7",
         whiteSpace: "pre",
       }}
     >
       {renderLine(line)}
     </div>
   );
-};
+}
 
-// ----------------------------------------------
-// Helper: Section label with divider
-// ----------------------------------------------
-const SectionLabel = ({
+// ── Data ──────────────────────────────────────────────────────────────────────
+const steps = [
+  {
+    id: 1,
+    title: "Create the annotated pod",
+    description: "Apply the pod manifest with labels and annotations defined.",
+    cmd: "kubectl apply -f annotation-pod.yaml",
+    accentColor: "#38bdf8",
+    accentBg: "rgba(56,189,248,0.08)",
+    accentBorder: "rgba(56,189,248,0.28)",
+  },
+  {
+    id: 2,
+    title: "View annotations",
+    description: "Describe the pod to inspect all metadata annotations.",
+    cmd: "kubectl describe pod annotation-pod",
+    accentColor: "#f9a8d4",
+    accentBg: "rgba(249,168,212,0.08)",
+    accentBorder: "rgba(249,168,212,0.28)",
+  },
+  {
+    id: 3,
+    title: "Get annotation value",
+    description: "Extract the change-cause annotation value directly.",
+    cmd: `kubectl get pod annotation-pod -o jsonpath='{.metadata.annotations}'`,
+    accentColor: "#4ade80",
+    accentBg: "rgba(74,222,128,0.08)",
+    accentBorder: "rgba(74,222,128,0.28)",
+  },
+  {
+    id: 4,
+    title: "Update annotation",
+    description: "Patch the change-cause annotation with a new value.",
+    cmd: `kubectl annotate pod annotation-pod kubernetes.io/change-cause="v2-release" --overwrite`,
+    accentColor: "#a78bfa",
+    accentBg: "rgba(167,139,250,0.08)",
+    accentBorder: "rgba(167,139,250,0.28)",
+  },
+];
+
+const annotationMeta = [
+  { label: "apiVersion", value: "v1", dark: "#a5b4fc", light: "#4f46e5" },
+  { label: "kind", value: "Pod", dark: "#34d399", light: "#059669" },
+  { label: "name", value: "annotation-pod", dark: "#fcd34d", light: "#d97706" },
+  {
+    label: "label",
+    value: "env: anno-prod",
+    dark: "#67e8f9",
+    light: "#0891b2",
+  },
+  {
+    label: "annotation",
+    value: "kubernetes.io/change-cause",
+    dark: "#f9a8d4",
+    light: "#db2777",
+  },
+  { label: "value", value: '"deploy"', dark: "#4ade80", light: "#15803d" },
+  { label: "container", value: "anna-con", dark: "#fcd34d", light: "#d97706" },
+  {
+    label: "image",
+    value: "jenkins/jenkins",
+    dark: "#67e8f9",
+    light: "#0891b2",
+  },
+];
+
+const annotationFacts = [
+  {
+    icon: "📌",
+    title: "Non-identifying metadata",
+    desc: "Unlike labels, annotations are not used for selection — they carry extra info.",
+  },
+  {
+    icon: "📝",
+    title: "Arbitrary key/value pairs",
+    desc: "Values can be large strings, JSON blobs, build hashes, or tool configs.",
+  },
+  {
+    icon: "🔁",
+    title: "Change-cause tracking",
+    desc: "kubernetes.io/change-cause records why a rollout happened.",
+  },
+  {
+    icon: "🔍",
+    title: "Tool integration",
+    desc: "CI/CD tools, monitoring, and Ingress controllers read annotations.",
+  },
+];
+
+const comparisons = [
+  { feature: "Used for selection", labels: "Yes", annotations: "No" },
+  {
+    feature: "Arbitrary values",
+    labels: "Limited",
+    annotations: "Yes (large blobs)",
+  },
+  { feature: "Queryable via labelSelector", labels: "Yes", annotations: "No" },
+  {
+    feature: "Change-cause tracking",
+    labels: "No",
+    annotations: "Yes (kubernetes.io/change-cause)",
+  },
+];
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function t(isDark: boolean, dark: string, light: string): string {
+  return isDark ? dark : light;
+}
+
+function SectionLabel({
   label,
   mono,
   color,
@@ -110,182 +238,101 @@ const SectionLabel = ({
   mono: string;
   color: string;
   divider: string;
-}) => (
-  <div
-    style={{
-      display: "flex",
-      alignItems: "center",
-      gap: 10,
-      marginBottom: 14,
-    }}
-  >
-    <span
+}) {
+  return (
+    <div
       style={{
-        fontFamily: mono,
-        fontSize: 9,
-        letterSpacing: "1.8px",
-        textTransform: "uppercase",
-        color,
-        whiteSpace: "nowrap",
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        marginBottom: 14,
       }}
     >
-      {label}
-    </span>
-    <div style={{ flex: 1, height: 1, background: divider }} />
-  </div>
-);
+      <span
+        style={{
+          fontFamily: mono,
+          fontSize: 9,
+          letterSpacing: "1.8px",
+          textTransform: "uppercase" as const,
+          color,
+          whiteSpace: "nowrap" as const,
+        }}
+      >
+        {label}
+      </span>
+      <div style={{ flex: 1, height: 1, background: divider }} />
+    </div>
+  );
+}
 
-// ----------------------------------------------
-// Main component – DoesNotExist operator (absence check)
-// ----------------------------------------------
-const DoesNotExistSelector = () => {
-  const { isDark } = useTheme();
+// ── Main ─────────────────────────────────────────────────────────────────────
+export default function AnnotationSetup() {
   const [copied, setCopied] = useState(false);
-
-  const yamlSnippet = `apiVersion: v1
-kind: Deployment
-metadata:
-  name: myapp
-spec:
-  minReadySeconds: 5
-  replicas: 5
-  selector:
-    matchExpressions:
-      - key: app
-        operator: DoesNotExist
-        values:
-          - zomato
-          - uber`;
+  const { isDark } = useTheme();
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(yamlSnippet);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    navigator.clipboard.writeText(podYaml).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   };
 
-  // Theme‑aware colour palette (pink for DoesNotExist, blue secondary)
-  const bg = isDark ? "#0f0a12" : "#fff1f2";
-  const cardBg = isDark ? "#150f18" : "#ffffff";
-  const cardBorder = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
-  const divider = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
-  const codeBg = isDark ? "#0a0710" : "#f8fafc";
-  const codeBorder = isDark ? "#33213a" : "#e2e8f0";
+  // ── Palette (pink/cyan/purple/green — annotation theme) ───────────────────
+  const bg = t(isDark, "#0f0a12", "#fdf2f8");
+  const cardBg = t(isDark, "#150f18", "#ffffff");
+  const cardBorder = t(isDark, "rgba(255,255,255,0.08)", "rgba(0,0,0,0.08)");
+  const divider = t(isDark, "rgba(255,255,255,0.06)", "rgba(0,0,0,0.06)");
+  const codeBg = t(isDark, "#0a0710", "#fdf2f8");
+  const codeBorder = t(isDark, "#33213a", "#fbcfe8");
 
-  const txt = isDark ? "#ffffff" : "#0f172a";
-  const txtSec = isDark ? "rgba(220,180,200,0.7)" : "#475569";
-  const txtMuted = isDark ? "rgba(249,168,212,0.4)" : "#64748b";
+  const txt = t(isDark, "#ffffff", "#0f172a");
+  const txtSec = t(isDark, "rgba(220,180,200,0.7)", "#475569");
+  const txtMuted = t(isDark, "rgba(249,168,212,0.4)", "#94a3b8");
 
-  // Primary accent = pink (DoesNotExist), secondary = blue
-  const pink = isDark ? "#f9a8d4" : "#db2777";
-  const pinkAlpha = isDark ? "rgba(249,168,212,0.08)" : "rgba(219,39,119,0.06)";
-  const pinkBorder = isDark ? "rgba(249,168,212,0.28)" : "rgba(219,39,119,0.2)";
+  const pink = t(isDark, "#f9a8d4", "#db2777");
+  const pinkAlpha = t(
+    isDark,
+    "rgba(249,168,212,0.08)",
+    "rgba(219,39,119,0.06)",
+  );
+  const pinkBorder = t(
+    isDark,
+    "rgba(249,168,212,0.28)",
+    "rgba(219,39,119,0.2)",
+  );
 
-  const blue = isDark ? "#7dd3fc" : "#0284c7";
-  const blueAlpha = isDark ? "rgba(125,211,252,0.07)" : "rgba(2,132,199,0.05)";
-  const blueBorder = isDark ? "rgba(125,211,252,0.22)" : "rgba(2,132,199,0.15)";
+  const cyan = t(isDark, "#67e8f9", "#0891b2");
+  const cyanAlpha = t(isDark, "rgba(103,232,249,0.07)", "rgba(8,145,178,0.05)");
+  const cyanBorder = t(
+    isDark,
+    "rgba(103,232,249,0.22)",
+    "rgba(8,145,178,0.15)",
+  );
 
-  const purple = isDark ? "#c084fc" : "#9333ea";
-  const purpleAlpha = isDark
-    ? "rgba(192,132,252,0.07)"
-    : "rgba(147,51,234,0.05)";
+  const purple = t(isDark, "#c084fc", "#9333ea");
+  const purpleAlpha = t(
+    isDark,
+    "rgba(192,132,252,0.07)",
+    "rgba(147,51,234,0.05)",
+  );
+  const purpleBorder = t(
+    isDark,
+    "rgba(192,132,252,0.22)",
+    "rgba(147,51,234,0.15)",
+  );
 
-  const headerGrad = isDark
-    ? "linear-gradient(135deg,#1a0f1f 0%,#150f18 60%)"
-    : "linear-gradient(135deg,#ffe4e6 0%,#ffffff 60%)";
+  const green = t(isDark, "#34d399", "#059669");
+  const greenAlpha = t(isDark, "rgba(52,211,153,0.08)", "rgba(5,150,105,0.06)");
+  const greenBorder = t(isDark, "rgba(52,211,153,0.28)", "rgba(5,150,105,0.2)");
+
+  const headerGrad = t(
+    isDark,
+    "linear-gradient(135deg,#1a0f1f 0%,#150f18 60%)",
+    "linear-gradient(135deg,#fce7f3 0%,#ffffff 60%)",
+  );
 
   const mono = "'Space Mono','SF Mono','Menlo',monospace";
   const sans = "'Outfit','Inter',-apple-system,BlinkMacSystemFont,sans-serif";
-
-  // Steps for DoesNotExist operator usage
-  const steps = [
-    {
-      id: 1,
-      title: "Define matchExpressions with DoesNotExist",
-      description:
-        "Use operator: DoesNotExist to match resources that lack the label key entirely.",
-      cmd: "selector:\n  matchExpressions:\n  - key: app\n    operator: DoesNotExist",
-      accentColor: pink,
-      accentBg: pinkAlpha,
-      accentBorder: pinkBorder,
-    },
-    {
-      id: 2,
-      title: "Apply Deployment",
-      description:
-        "The Deployment will select all Pods that do NOT have the 'app' label.",
-      cmd: "kubectl apply -f deployment.yaml",
-      accentColor: blue,
-      accentBg: blueAlpha,
-      accentBorder: blueBorder,
-    },
-    {
-      id: 3,
-      title: "Verify selected Pods",
-      description:
-        "List Pods missing the label (useful for default/fallback workloads).",
-      cmd: "kubectl get pods -l '!app'",
-      accentColor: pink,
-      accentBg: pinkAlpha,
-      accentBorder: pinkBorder,
-    },
-  ];
-
-  // Selection matrix data
-  const scenarios = [
-    {
-      label: "app: zomato (key exists)",
-      selected: false,
-      note: "Key exists → rejected",
-    },
-    {
-      label: "app: uber (key exists)",
-      selected: false,
-      note: "Key exists → rejected",
-    },
-    {
-      label: "app: any-value (key exists)",
-      selected: false,
-      note: "Key exists → rejected",
-    },
-    {
-      label: "No app label (key missing)",
-      selected: true,
-      note: "Key missing → selected",
-    },
-  ];
-
-  // Comparison: DoesNotExist vs Exists vs NotIn
-  const comparisons = [
-    {
-      feature: "Operator",
-      doesNotExist: "DoesNotExist",
-      exists: "Exists",
-      notIn: "NotIn",
-    },
-    {
-      feature: "Matches when",
-      doesNotExist: "label absent",
-      exists: "label present (any value)",
-      notIn: "value ∉ set",
-    },
-    {
-      feature: "Missing label",
-      doesNotExist: "Matches",
-      exists: "No match",
-      notIn: "Matches",
-    },
-  ];
-
-  // Best for tags
-  const bestFor = [
-    "Select unlabeled resources",
-    "Fallback/default workloads",
-    "Ignore labeled canaries",
-    "Cleanup jobs",
-  ];
-
-  const t = (darkVal: string, lightVal: string) =>
-    isDark ? darkVal : lightVal;
 
   return (
     <div
@@ -312,11 +359,11 @@ spec:
           50%      { opacity:1; }
         }
 
-        .dne-pulse       { animation: pulse-glow 2s ease-in-out infinite; }
-        .dne-arrow       { animation: arrow-fade 2s ease-in-out infinite; }
-        .dne-copy:hover  { color:${pink} !important; border-color:${pinkBorder} !important; }
-        .dne-step:hover  { background:${pinkAlpha} !important; transform:translateX(2px); }
-        .dne-row:hover   { background:${pinkAlpha} !important; transform:translateX(3px); }
+        .ann-pulse       { animation: pulse-glow 2s ease-in-out infinite; }
+        .ann-arrow       { animation: arrow-fade 2s ease-in-out infinite; }
+        .ann-copy:hover  { color:${pink} !important; border-color:${pinkBorder} !important; }
+        .ann-step:hover  { background:${pinkAlpha} !important; transform:translateX(2px); }
+        .ann-row:hover   { background:${pinkAlpha} !important; transform:translateX(3px); }
       `}</style>
 
       <div
@@ -330,7 +377,7 @@ spec:
           transition: "background 0.3s,border-color 0.3s",
         }}
       >
-        {/* Header with gradient */}
+        {/* ── Header ───────────────────────────────────────────────────────── */}
         <div
           style={{
             background: headerGrad,
@@ -340,6 +387,7 @@ spec:
             overflow: "hidden",
           }}
         >
+          {/* glow orb */}
           <div
             style={{
               position: "absolute",
@@ -376,24 +424,24 @@ spec:
                     fontSize: 10,
                     letterSpacing: "2px",
                     color: pink,
-                    textTransform: "uppercase",
+                    textTransform: "uppercase" as const,
                   }}
                 >
-                  Kubernetes · Set‑based Selector
+                  Kubernetes · Metadata
                 </span>
                 <span
                   style={{
                     fontFamily: mono,
                     fontSize: 9,
                     letterSpacing: "1px",
-                    color: blue,
-                    background: blueAlpha,
-                    border: `1px solid ${blueBorder}`,
+                    color: cyan,
+                    background: cyanAlpha,
+                    border: `1px solid ${cyanBorder}`,
                     borderRadius: 20,
                     padding: "2px 10px",
                   }}
                 >
-                  operator: DoesNotExist
+                  Non-identifying
                 </span>
               </div>
 
@@ -407,7 +455,8 @@ spec:
                   fontFamily: sans,
                 }}
               >
-                <span style={{ color: pink }}>DoesNotExist</span> Operator
+                Annotations —{" "}
+                <span style={{ color: pink }}>annotation-pod</span>
               </div>
 
               <div
@@ -419,15 +468,16 @@ spec:
                   lineHeight: 1.6,
                 }}
               >
-                Selects resources that{" "}
+                Non-identifying metadata attached to a pod. Used by tools,{" "}
                 <strong style={{ color: pink, fontWeight: 500 }}>
-                  do not have the label key
+                  not selectors
                 </strong>
-                . Any resource with the key (regardless of value) is rejected —
-                perfect for fallback workloads.
+                . Annotations carry extra info like build hashes, rollback
+                reasons, or tool configs.
               </div>
             </div>
 
+            {/* badge */}
             <div
               style={{
                 display: "flex",
@@ -441,7 +491,7 @@ spec:
               }}
             >
               <span
-                className="dne-pulse"
+                className="ann-pulse"
                 style={{ fontFamily: mono, fontSize: 12, color: pink }}
               >
                 ●
@@ -454,13 +504,13 @@ spec:
                   color: pink,
                 }}
               >
-                DOESNOTEXIST OPERATOR DEMO
+                ANNOTATION DEMO
               </span>
             </div>
           </div>
         </div>
 
-        {/* Two‑column body */}
+        {/* ── Body ─────────────────────────────────────────────────────────── */}
         <div
           style={{
             display: "grid",
@@ -468,17 +518,17 @@ spec:
             minHeight: 560,
           }}
         >
-          {/* LEFT COLUMN: YAML + Steps + Tags */}
+          {/* ── Left column ─────────────────────────────────────────────────── */}
           <div
             style={{
               borderRight: `1px solid ${divider}`,
               padding: "26px 30px",
               display: "flex",
-              flexDirection: "column",
+              flexDirection: "column" as const,
               gap: 24,
             }}
           >
-            {/* Tag group */}
+            {/* API tags */}
             <div>
               <div
                 style={{
@@ -490,25 +540,22 @@ spec:
               >
                 {[
                   {
-                    label: "matchExpressions",
-                    bg: blueAlpha,
-                    border: blueBorder,
-                    color: blue,
+                    label: "v1",
+                    bg: purpleAlpha,
+                    border: purpleBorder,
+                    color: purple,
                   },
                   {
-                    label: "operator: DoesNotExist",
+                    label: "Pod",
+                    bg: greenAlpha,
+                    border: greenBorder,
+                    color: green,
+                  },
+                  {
+                    label: "change-cause",
                     bg: pinkAlpha,
                     border: pinkBorder,
                     color: pink,
-                  },
-                  {
-                    label: "absence check",
-                    bg: purpleAlpha,
-                    border: t(
-                      "rgba(192,132,252,0.22)",
-                      "rgba(147,51,234,0.15)",
-                    ),
-                    color: purple,
                   },
                 ].map((tag) => (
                   <span
@@ -528,7 +575,7 @@ spec:
                 ))}
               </div>
 
-              {/* Steps timeline */}
+              {/* Steps */}
               <div
                 style={{
                   background: pinkAlpha,
@@ -543,7 +590,7 @@ spec:
                     fontFamily: mono,
                     fontSize: 9,
                     letterSpacing: "1.8px",
-                    textTransform: "uppercase",
+                    textTransform: "uppercase" as const,
                     color: pink,
                     marginBottom: 12,
                   }}
@@ -554,7 +601,7 @@ spec:
                 {steps.map((step, idx) => (
                   <div key={step.id}>
                     <div
-                      className="dne-step"
+                      className="ann-step"
                       style={{
                         display: "flex",
                         alignItems: "flex-start",
@@ -564,6 +611,7 @@ spec:
                         transition: "all 0.15s",
                       }}
                     >
+                      {/* number bubble */}
                       <div
                         style={{
                           width: 28,
@@ -605,6 +653,7 @@ spec:
                         >
                           {step.description}
                         </div>
+                        {/* inline command */}
                         <div
                           style={{
                             fontFamily: mono,
@@ -621,14 +670,10 @@ spec:
                         >
                           <span style={{ color: txtMuted }}>$</span>
                           <span style={{ color: step.accentColor }}>
-                            {step.cmd.split("\n")[0].split(" ")[0] ||
-                              step.cmd.split(" ")[0]}
+                            {step.cmd.split(" ")[0]}
                           </span>
                           <span style={{ color: txtSec }}>
-                            {" " +
-                              (step.cmd.includes("\n")
-                                ? step.cmd
-                                : step.cmd.slice(step.cmd.indexOf(" ") + 1))}
+                            {" " + step.cmd.slice(step.cmd.indexOf(" ") + 1)}
                           </span>
                         </div>
                       </div>
@@ -642,7 +687,7 @@ spec:
                         }}
                       >
                         <span
-                          className="dne-arrow"
+                          className="ann-arrow"
                           style={{ color: pink, fontSize: 14 }}
                         >
                           ↓
@@ -653,29 +698,26 @@ spec:
                 ))}
               </div>
 
-              {/* Descriptive tags */}
+              {/* descriptive tags */}
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                 {[
                   {
-                    label: "Absence check",
-                    bg: pinkAlpha,
-                    border: pinkBorder,
-                    color: pink,
-                  },
-                  {
-                    label: "Key‑based exclusion",
-                    bg: blueAlpha,
-                    border: blueBorder,
-                    color: blue,
-                  },
-                  {
-                    label: "Strict negation",
+                    label: "Arbitrary key/value",
                     bg: purpleAlpha,
-                    border: t(
-                      "rgba(192,132,252,0.22)",
-                      "rgba(147,51,234,0.15)",
-                    ),
+                    border: purpleBorder,
                     color: purple,
+                  },
+                  {
+                    label: "Not selectable",
+                    bg: cyanAlpha,
+                    border: cyanBorder,
+                    color: cyan,
+                  },
+                  {
+                    label: "Tool integration",
+                    bg: greenAlpha,
+                    border: greenBorder,
+                    color: green,
                   },
                 ].map((tag) => (
                   <span
@@ -696,7 +738,7 @@ spec:
               </div>
             </div>
 
-            {/* YAML block with copy */}
+            {/* YAML block */}
             <div>
               <div
                 style={{
@@ -711,14 +753,14 @@ spec:
                     fontFamily: mono,
                     fontSize: 9,
                     letterSpacing: "1.8px",
-                    textTransform: "uppercase",
+                    textTransform: "uppercase" as const,
                     color: txtMuted,
                   }}
                 >
-                  doesnotexist-selector.yaml
+                  annotation-pod.yaml
                 </span>
                 <button
-                  className="dne-copy"
+                  className="ann-copy"
                   onClick={handleCopy}
                   style={{
                     fontFamily: mono,
@@ -744,8 +786,8 @@ spec:
                 }}
               >
                 <div style={{ padding: "18px 22px" }}>
-                  {yamlSnippet.split("\n").map((line, i) => (
-                    <YamlLine key={i} line={line} isDark={isDark} />
+                  {podYaml.split("\n").map((line: string, i: number) => (
+                    <AnnotationYamlLine key={i} line={line} isDark={isDark} />
                   ))}
                 </div>
               </div>
@@ -755,7 +797,7 @@ spec:
             <div
               style={{
                 background: purpleAlpha,
-                border: `1px solid ${t("rgba(192,132,252,0.22)", "rgba(147,51,234,0.15)")}`,
+                border: `1px solid ${purpleBorder}`,
                 borderRadius: 10,
                 padding: "12px 16px",
               }}
@@ -765,7 +807,7 @@ spec:
                   fontFamily: mono,
                   fontSize: 9,
                   letterSpacing: "1.8px",
-                  textTransform: "uppercase",
+                  textTransform: "uppercase" as const,
                   color: purple,
                   marginBottom: 8,
                 }}
@@ -773,15 +815,19 @@ spec:
                 Important Note
               </div>
               <p style={{ fontSize: 12.5, color: txtSec, lineHeight: 1.6 }}>
-                The <code>DoesNotExist</code> operator matches{" "}
-                <strong>only</strong> when the label key is completely absent.
-                If the label exists <em>with any value</em> (including empty
-                strings), it is <strong>rejected</strong>. The{" "}
-                <code>values</code> array is ignored.
+                Annotations use the key format{" "}
+                <strong style={{ color: pink, fontWeight: 500 }}>
+                  prefix/name
+                </strong>
+                . The{" "}
+                <strong style={{ color: cyan, fontWeight: 500 }}>
+                  kubernetes.io/
+                </strong>{" "}
+                prefix is reserved for core Kubernetes use.
               </p>
             </div>
 
-            {/* Quick kubectl bar */}
+            {/* kubectl bar */}
             <div
               style={{
                 fontFamily: mono,
@@ -798,25 +844,25 @@ spec:
               }}
             >
               <span style={{ color: txtMuted, flexShrink: 0 }}>$</span>
-              <span>kubectl get pods -l '!app'</span>
+              <span>kubectl get pods --show-labels</span>
               <span style={{ color: txtMuted }}>·</span>
-              <span>kubectl describe deployment myapp</span>
+              <span>kubectl describe pod annotation-pod</span>
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Flow, matrix, comparison, best for */}
+          {/* ── Right column ────────────────────────────────────────────────── */}
           <div
             style={{
               padding: "26px 30px",
               display: "flex",
-              flexDirection: "column",
+              flexDirection: "column" as const,
               gap: 26,
             }}
           >
-            {/* Absence flow diagram */}
+            {/* Flow diagram / Annotation lifecycle */}
             <div>
               <SectionLabel
-                label="Selection flow"
+                label="Annotation lifecycle"
                 mono={mono}
                 color={txtMuted}
                 divider={divider}
@@ -832,21 +878,38 @@ spec:
                 <div style={{ display: "flex", alignItems: "stretch" }}>
                   {(
                     [
-                      { icon: "🏷️", label: "Pod Labels", accent: false },
+                      {
+                        icon: "📝",
+                        label: "Define\nannotations",
+                        accent: false,
+                        ok: false,
+                      },
+                      {
+                        icon: "⚙️",
+                        label: "Apply\npod",
+                        accent: true,
+                        ok: false,
+                      },
                       {
                         icon: "🔍",
-                        label: "Check\nDoesNotExist",
-                        accent: true,
+                        label: "Read\nvia kubectl",
+                        accent: false,
+                        ok: true,
                       },
-                      { icon: "❌", label: "Key\nabsent?", accent: false },
+                      {
+                        icon: "🔄",
+                        label: "Update\npatch",
+                        accent: false,
+                        ok: true,
+                      },
                     ] as const
-                  ).map((step, idx, arr) => (
+                  ).map((step, idx) => (
                     <div
                       key={idx}
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        flex: 1,
+                        flex: idx === 1 ? "0 0 auto" : 1,
                       }}
                     >
                       <div
@@ -855,18 +918,29 @@ spec:
                           textAlign: "center",
                           background: step.accent
                             ? pinkAlpha
-                            : "rgba(255,255,255,0.03)",
-                          border: `1px solid ${step.accent ? pinkBorder : divider}`,
+                            : step.ok
+                              ? cyanAlpha
+                              : "rgba(255,255,255,0.03)",
+                          border: `1px solid ${step.accent ? pinkBorder : step.ok ? cyanBorder : divider}`,
                           borderRadius: 10,
                           padding: "12px 6px",
                         }}
                       >
                         <div
                           style={{
-                            fontSize: 20,
+                            fontSize: step.icon === "⚙️" ? 22 : 20,
+                            fontFamily:
+                              step.icon === "⚙️" || step.icon === "🔄"
+                                ? mono
+                                : "inherit",
+                            fontWeight: 700,
                             marginBottom: 7,
-                            color: step.accent ? pink : "inherit",
-                            opacity: step.accent ? 1 : 0.55,
+                            color: step.accent
+                              ? pink
+                              : step.ok
+                                ? cyan
+                                : "inherit",
+                            opacity: step.accent || step.ok ? 1 : 0.55,
                           }}
                         >
                           {step.icon}
@@ -876,16 +950,16 @@ spec:
                             fontFamily: mono,
                             fontSize: 9.5,
                             lineHeight: 1.5,
-                            color: step.accent ? pink : txtSec,
-                            whiteSpace: "pre",
+                            color: step.accent ? pink : step.ok ? cyan : txtSec,
+                            whiteSpace: "pre" as const,
                           }}
                         >
                           {step.label}
                         </div>
                       </div>
-                      {idx < arr.length - 1 && (
+                      {idx < 3 && (
                         <div
-                          className="dne-arrow"
+                          className="ann-arrow"
                           style={{
                             fontSize: 16,
                             color: pink,
@@ -906,86 +980,123 @@ spec:
                     fontFamily: mono,
                     fontSize: 10,
                     color: txtSec,
-                    textAlign: "center",
+                    textAlign: "center" as const,
                   }}
                 >
-                  <span style={{ color: pink }}>✓</span> Only pods{" "}
-                  <strong>without</strong> the <code>app</code> label are
-                  selected.
+                  <span style={{ color: pink }}>●</span> Annotations are
+                  mutable, not used for selection, and ideal for tooling.
                 </div>
               </div>
             </div>
 
-            {/* Selection matrix */}
+            {/* Manifest summary grid */}
             <div>
               <SectionLabel
-                label="Selection matrix"
+                label="Manifest summary"
                 mono={mono}
                 color={txtMuted}
                 divider={divider}
               />
               <div
                 style={{
-                  background: codeBg,
-                  border: `1px solid ${codeBorder}`,
-                  borderRadius: 12,
-                  overflow: "hidden",
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 8,
                 }}
               >
-                {scenarios.map((s, i) => (
+                {annotationMeta.map((m) => (
                   <div
-                    key={i}
-                    className="dne-row"
+                    key={m.label}
                     style={{
+                      background: codeBg,
+                      border: `1px solid ${codeBorder}`,
+                      borderRadius: 8,
+                      padding: "8px 12px",
                       display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      padding: "12px 20px",
-                      borderBottom:
-                        i !== scenarios.length - 1
-                          ? `1px solid ${divider}`
-                          : "none",
-                      transition: "all 0.15s",
+                      flexDirection: "column" as const,
+                      gap: 3,
                     }}
                   >
                     <span
                       style={{
                         fontFamily: mono,
-                        fontSize: 12,
-                        color: txt,
+                        fontSize: 9,
+                        color: txtMuted,
+                        fontWeight: 600,
+                        textTransform: "uppercase" as const,
+                        letterSpacing: "0.08em",
                       }}
                     >
-                      {s.label}
+                      {m.label}
                     </span>
                     <span
                       style={{
-                        background: s.selected ? pinkAlpha : "transparent",
-                        color: s.selected ? pink : txtMuted,
-                        fontSize: 11,
+                        fontFamily: mono,
+                        fontSize: 12,
+                        color: t(isDark, m.dark, m.light),
                         fontWeight: 500,
-                        padding: "4px 14px",
-                        borderRadius: 24,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 6,
                       }}
                     >
-                      {s.selected ? "✓ SELECTED" : "✗ REJECTED"}
-                      {s.note && (
-                        <span style={{ opacity: 0.6, fontWeight: 400 }}>
-                          ({s.note})
-                        </span>
-                      )}
+                      {m.value}
                     </span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Comparison: DoesNotExist vs Exists vs NotIn */}
+            {/* Annotation facts grid */}
             <div>
               <SectionLabel
-                label="Set‑based operators"
+                label="What annotations do"
+                mono={mono}
+                color={txtMuted}
+                divider={divider}
+              />
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 10,
+                }}
+              >
+                {annotationFacts.map((fact) => (
+                  <div
+                    key={fact.title}
+                    style={{
+                      background: codeBg,
+                      border: `1px solid ${codeBorder}`,
+                      borderRadius: 10,
+                      padding: "12px",
+                    }}
+                  >
+                    <div style={{ fontSize: 20, marginBottom: 6 }}>
+                      {fact.icon}
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: mono,
+                        fontSize: 10,
+                        fontWeight: 700,
+                        color: pink,
+                        marginBottom: 4,
+                      }}
+                    >
+                      {fact.title}
+                    </div>
+                    <div
+                      style={{ fontSize: 10.5, color: txtSec, lineHeight: 1.5 }}
+                    >
+                      {fact.desc}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Labels vs Annotations comparison */}
+            <div>
+              <SectionLabel
+                label="Labels vs Annotations"
                 mono={mono}
                 color={txtMuted}
                 divider={divider}
@@ -1001,7 +1112,7 @@ spec:
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "1fr 1fr 1fr 1fr",
+                    gridTemplateColumns: "1fr 1.1fr 1.1fr",
                     background: isDark
                       ? "rgba(255,255,255,0.03)"
                       : "rgba(0,0,0,0.02)",
@@ -1024,39 +1135,29 @@ spec:
                       fontFamily: mono,
                       fontSize: 9,
                       letterSpacing: "1px",
+                      color: cyan,
+                    }}
+                  >
+                    Labels
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: mono,
+                      fontSize: 9,
+                      letterSpacing: "1px",
                       color: pink,
                     }}
                   >
-                    DoesNotExist
-                  </span>
-                  <span
-                    style={{
-                      fontFamily: mono,
-                      fontSize: 9,
-                      letterSpacing: "1px",
-                      color: blue,
-                    }}
-                  >
-                    Exists
-                  </span>
-                  <span
-                    style={{
-                      fontFamily: mono,
-                      fontSize: 9,
-                      letterSpacing: "1px",
-                      color: purple,
-                    }}
-                  >
-                    NotIn
+                    Annotations
                   </span>
                 </div>
                 {comparisons.map((item, i) => (
                   <div
                     key={i}
-                    className="dne-row"
+                    className="ann-row"
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "1fr 1fr 1fr 1fr",
+                      gridTemplateColumns: "1fr 1.1fr 1.1fr",
                       padding: "10px 18px",
                       borderBottom:
                         i !== comparisons.length - 1
@@ -1070,49 +1171,18 @@ spec:
                     >
                       {item.feature}
                     </span>
+                    <span style={{ fontSize: 11.5, color: cyan }}>
+                      {item.labels}
+                    </span>
                     <span style={{ fontSize: 11.5, color: pink }}>
-                      {item.doesNotExist}
-                    </span>
-                    <span style={{ fontSize: 11.5, color: blue }}>
-                      {item.exists}
-                    </span>
-                    <span style={{ fontSize: 11.5, color: purple }}>
-                      {item.notIn}
+                      {item.annotations}
                     </span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Best for tags */}
-            <div>
-              <SectionLabel
-                label="Best for"
-                mono={mono}
-                color={txtMuted}
-                divider={divider}
-              />
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                {bestFor.map((item) => (
-                  <span
-                    key={item}
-                    style={{
-                      fontFamily: mono,
-                      fontSize: 10,
-                      padding: "4px 12px",
-                      borderRadius: 4,
-                      background: blueAlpha,
-                      border: `1px solid ${blueBorder}`,
-                      color: blue,
-                    }}
-                  >
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Best practice tip */}
+            {/* Best practice */}
             <div>
               <SectionLabel
                 label="Best practice"
@@ -1122,8 +1192,8 @@ spec:
               />
               <div
                 style={{
-                  background: pinkAlpha,
-                  border: `1px solid ${pinkBorder}`,
+                  background: greenAlpha,
+                  border: `1px solid ${greenBorder}`,
                   borderRadius: 12,
                   padding: "14px 18px",
                   marginBottom: 12,
@@ -1134,20 +1204,67 @@ spec:
                     fontFamily: mono,
                     fontSize: 9,
                     letterSpacing: "1.5px",
-                    textTransform: "uppercase",
-                    color: pink,
+                    textTransform: "uppercase" as const,
+                    color: green,
                     marginBottom: 8,
                   }}
                 >
-                  Use DoesNotExist for fallback workloads
+                  Use annotations for tool integration
                 </div>
                 <p style={{ fontSize: 13, color: txtSec, lineHeight: 1.6 }}>
-                  The <code>DoesNotExist</code> operator is perfect for
-                  selecting <strong>unlabeled resources</strong> as a
-                  default/fallback. Combine with <code>Exists</code> or{" "}
-                  <code>In</code> to create advanced routing logic (e.g.,
-                  labeled traffic goes to canary, unlabeled goes to stable).
+                  Store{" "}
+                  <strong style={{ color: pink, fontWeight: 500 }}>
+                    change-cause
+                  </strong>
+                  ,{" "}
+                  <strong style={{ color: cyan, fontWeight: 500 }}>
+                    build hashes
+                  </strong>
+                  , and{" "}
+                  <strong style={{ color: purple, fontWeight: 500 }}>
+                    rollback reasons
+                  </strong>{" "}
+                  in annotations. Avoid large, frequently changing values. Keep
+                  keys unique to prevent collisions.
                 </p>
+              </div>
+
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {[
+                  {
+                    label: "kubectl annotate",
+                    bg: pinkAlpha,
+                    border: pinkBorder,
+                    color: pink,
+                  },
+                  {
+                    label: "jsonpath extraction",
+                    bg: cyanAlpha,
+                    border: cyanBorder,
+                    color: cyan,
+                  },
+                  {
+                    label: "kubernetes.io/change-cause",
+                    bg: purpleAlpha,
+                    border: purpleBorder,
+                    color: purple,
+                  },
+                ].map((tag) => (
+                  <span
+                    key={tag.label}
+                    style={{
+                      fontFamily: mono,
+                      fontSize: 10,
+                      color: tag.color,
+                      background: tag.bg,
+                      border: `1px solid ${tag.border}`,
+                      borderRadius: 4,
+                      padding: "4px 12px",
+                    }}
+                  >
+                    {tag.label}
+                  </span>
+                ))}
               </div>
             </div>
           </div>
@@ -1155,6 +1272,4 @@ spec:
       </div>
     </div>
   );
-};
-
-export default DoesNotExistSelector;
+}
